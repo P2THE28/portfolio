@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.output/
+.netlify/
+.tanstack/
+.content-collections/
+.env
+.env.*
+!.env.example
