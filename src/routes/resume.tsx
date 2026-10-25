@@ -1,16 +1,17 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { ArrowDownToLine, ExternalLink, Github, Linkedin } from 'lucide-react'
+import { ArrowDownToLine, ExternalLink, Github } from 'lucide-react'
+import { PlatformIcon, type Platform } from '@/components/PlatformIcon'
 
 export const Route = createFileRoute('/resume')({
   component: App,
 })
 
 function App() {
-  const links = [
-    { label: 'GitHub', href: 'https://github.com/p2the28', icon: Github },
-    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/p2the28/', icon: Linkedin },
-    { label: 'Codeforces', href: 'https://codeforces.com/profile/p2the28' },
-    { label: 'LeetCode', href: 'https://leetcode.com/p2the28' },
+  const links: Array<{ label: string; href: string; platform?: Platform }> = [
+    { label: 'GitHub', href: 'https://github.com/p2the28', platform: 'github' as Platform },
+    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/p2the28/', platform: 'linkedin' as Platform },
+    { label: 'Codeforces', href: 'https://codeforces.com/profile/p2the28', platform: 'codeforces' as Platform },
+    { label: 'LeetCode', href: 'https://leetcode.com/p2the28', platform: 'leetcode' as Platform },
     { label: 'CodeChef', href: 'https://www.codechef.com/users/p2the285' },
   ]
 
@@ -51,9 +52,9 @@ function App() {
             <a className="hover:text-cyan-300" href="tel:+917667550686">+91 76675 50686</a>
           </div>
           <div className="flex flex-wrap gap-3 pt-2">
-            {links.map(({ label, href, icon: Icon }) => (
-              <a key={label} href={href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-gray-200 transition hover:border-cyan-400/60 hover:text-cyan-300">
-                {Icon && <Icon size={15} />}{label}<ExternalLink size={13} />
+            {links.map(({ label, href, platform }) => (
+              <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={`Open ${label} profile`} title={label} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-gray-200 transition hover:border-cyan-400/60 hover:text-cyan-300">
+                {platform ? <PlatformIcon platform={platform} size={17} /> : label}
               </a>
             ))}
           </div>

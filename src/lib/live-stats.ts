@@ -26,6 +26,7 @@ export type CodeforcesData = {
   solved: number
   solvedByRating: Array<{ rating: number; count: number }>
   ratingHistory: Array<{ contest: string; rating: number; date: number }>
+  activity: Array<{ date: string; count: number }>
   recentAccepted: Array<{ name: string; contestId: number; index: string; date: number; url: string; rating: number | null }>
 }
 
@@ -123,6 +124,12 @@ export async function getCodeforces(): Promise<ProviderResult<CodeforcesData>> {
     }
     const byRating = new Map<number, number>()
     for (const problem of solvedProblems.values()) if (problem.rating) byRating.set(problem.rating, (byRating.get(problem.rating) ?? 0) + 1)
+    const dailyActivity = new Map<string, number>()
+    for (const submission of submissions) {
+      if (!Number.isFinite(submission.creationTimeSeconds)) continue
+      const date = new Date(submission.creationTimeSeconds * 1000).toISOString().slice(0, 10)
+      dailyActivity.set(date, (dailyActivity.get(date) ?? 0) + 1)
+    }
     const latest = new Set<string>()
     const recentAccepted = submissions.filter((submission) => {
       if (submission.verdict !== 'OK' || !submission.problem.name || !submission.problem.contestId || !submission.problem.index) return false
@@ -136,6 +143,7 @@ export async function getCodeforces(): Promise<ProviderResult<CodeforcesData>> {
       solved: solvedProblems.size,
       solvedByRating: [...byRating].map(([rating, count]) => ({ rating, count })).sort((a, b) => a.rating - b.rating),
       ratingHistory: history.map((item) => ({ contest: item.contestName, rating: item.newRating, date: item.ratingUpdateTimeSeconds })),
+      activity: [...dailyActivity].map(([date, count]) => ({ date, count })).sort((a, b) => a.date.localeCompare(b.date)),
       recentAccepted,
     })
   } catch (error) { return failure(error) }

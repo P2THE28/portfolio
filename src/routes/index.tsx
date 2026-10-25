@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { CodingDashboard } from '@/components/CodingDashboard'
+import { PlatformIcon, type Platform } from '@/components/PlatformIcon'
 import { profileConfig, profileLinks } from '@/lib/profile-config'
 
 export const Route = createFileRoute('/')({ component: Home })
@@ -31,7 +32,7 @@ function Home() {
             <a href={profileConfig.resumeUrl} download className="rounded-lg border border-gray-700 px-5 py-3 font-medium text-gray-200 hover:border-cyan-400">Download resume</a>
           </div>
           <div className="mt-8 flex flex-wrap gap-4 text-sm text-gray-400">
-            {Object.entries(profileLinks).map(([name, url]) => <a key={name} href={url} target="_blank" rel="noreferrer" className="capitalize hover:text-cyan-300">{name} ↗</a>)}
+            {Object.entries(profileLinks).map(([name, url]) => <a key={name} href={url} target="_blank" rel="noreferrer" aria-label={`Open ${name} profile`} title={name} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-800 text-gray-400 transition hover:border-cyan-400/60 hover:text-cyan-300"><PlatformIcon platform={name as Platform} size={19} /></a>)}
           </div>
         </div>
         <div className="rounded-2xl border border-gray-800 bg-[#12121b] p-6 font-mono text-sm shadow-2xl shadow-cyan-950/30">
