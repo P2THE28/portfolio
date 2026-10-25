@@ -982,15 +982,15 @@ const TechText = ({
   }, []);
 
   return (
-    <div
+    <span
       ref={containerRef}
-      className={`relative w-full h-full touch-pan-y select-none ${className}`.trim()}
+      className={`relative inline-block w-full h-full touch-pan-y select-none ${className}`.trim()}
       style={style}
       role="img"
       aria-label={text}
     >
       <canvas ref={canvasRef} className="block w-full h-full" />
-    </div>
+    </span>
   );
 };
 

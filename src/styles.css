@@ -24,11 +24,11 @@
 html[data-theme='light'] {
   --page-bg: #f7f8fc;
   --card-bg: rgb(255 255 255 / 1%);
-  --heatmap-empty: #fff;
-  --heatmap-level-1: #c8e6c9;
-  --heatmap-level-2: #81c784;
-  --heatmap-level-3: #43a857;
-  --heatmap-level-4: #1b6e32;
+  --heatmap-empty: #ebedf0;
+  --heatmap-level-1: #9be9a8;
+  --heatmap-level-2: #40c463;
+  --heatmap-level-3: #30a14e;
+  --heatmap-level-4: #216e39;
   --hex-cool: #7c3aed;
   --hex-hot: #c026d3;
   --hex-line-alpha: 0.07;
@@ -124,6 +124,13 @@ html[data-theme='light'] .portfolio-shell .theme-card:hover,
 html[data-theme='light'] .portfolio-shell .theme-card:focus-within {
   border-color: rgb(109 40 217 / 38%);
   box-shadow: 0 0 22px rgb(109 40 217 / 10%), inset 0 0 18px rgb(109 40 217 / 3%);
+}
+html[data-theme='light'] .portfolio-shell .activity-heatmap-card,
+html[data-theme='light'] .portfolio-shell .activity-heatmap-card:hover,
+html[data-theme='light'] .portfolio-shell .activity-heatmap-card:focus-within {
+  background-color: #fff;
+  border-color: rgb(148 163 184 / 28%);
+  box-shadow: none;
 }
 html[data-theme='light'] .portfolio-shell .border-gray-900,
 html[data-theme='light'] .portfolio-shell .border-gray-800,

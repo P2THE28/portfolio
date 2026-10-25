@@ -184,7 +184,7 @@ function ActivityHeatmap({ title, platform, activity, unit, coverageStart, cover
   const columnStep = cellSize + cellGap
   const heatmapWidth = labelWidth + weeks.length * columnStep - cellGap
   const heatmapHeight = monthHeight + 7 * cellSize + 6 * cellGap
-  return <section className={panelStyle}>
+  return <section className={`${panelStyle} activity-heatmap-card`}>
     <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2"><h3 className="flex items-center gap-2 text-sm font-medium text-gray-200"><PlatformIcon platform={platform} size={17} />{title}</h3><p className="text-[11px] text-gray-500">Last year</p></div>
     {loading ? <div className="h-28 animate-pulse rounded bg-gray-800/70" aria-label="Loading activity" /> : unavailable ? <p className="text-xs text-gray-500">Activity data unavailable.</p> : <>
       <div ref={scrollRef} className="w-full overflow-x-auto pb-1">

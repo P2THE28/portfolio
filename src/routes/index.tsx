@@ -5,6 +5,7 @@ import { CodingDashboard } from '@/components/CodingDashboard'
 import { ProjectMarquee } from '@/components/ProjectMarquee'
 import { PlatformIcon, type Platform } from '@/components/PlatformIcon'
 import { HexGlowBackground } from '@/components/HexGlowBackground'
+import TechText from '@/components/TechText.jsx'
 import { profileConfig, profileLinks } from '@/lib/profile-config'
 
 export const Route = createFileRoute('/')({ component: Home })
@@ -68,7 +69,45 @@ function Home() {
       <section id="home" className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 sm:px-8 sm:py-20 lg:min-h-[620px] lg:grid-cols-[1.15fr_.85fr] lg:py-10">
         <div id="about" className="relative z-10 w-full text-left">
           <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/[0.06] px-3 py-1.5 font-mono text-[11px] tracking-[0.12em] text-cyan-200">COMPUTER SCIENCE · NIT ROURKELA</p>
-          <h1 className="max-w-[14ch] text-4xl font-bold leading-[1.08] tracking-tight text-white sm:max-w-none sm:text-6xl">{profileConfig.name}</h1>
+          <h1 className="max-w-full text-4xl font-bold leading-[1.08] tracking-tight text-[var(--text-primary)] sm:text-6xl">
+            <span className="flex flex-wrap items-center gap-x-[0.16em]">
+              <span>Hi, I’m</span>
+              <TechText
+                text="Priyanshu"
+                fontSize={150}
+                fontWeight={700}
+                color={theme === 'dark' ? '#84c8ff' : '#1673bf'}
+                accentColor={theme === 'dark' ? '#42dcf5' : '#0891b2'}
+                align="left"
+                intro="type"
+                introDuration={1.15}
+                labels={false}
+                selection={false}
+                draggable={false}
+                sweep={false}
+                clickKick={false}
+                className="h-[1.15em] w-[5.25em] shrink-0"
+              />
+            </span>
+            <span className="block">
+              <TechText
+                text="Kumar"
+                fontSize={150}
+                fontWeight={700}
+                color={theme === 'dark' ? '#42dcf5' : '#0788a6'}
+                accentColor={theme === 'dark' ? '#84c8ff' : '#1673bf'}
+                align="left"
+                intro="type"
+                introDuration={1.15}
+                labels={false}
+                selection={false}
+                draggable={false}
+                sweep={false}
+                clickKick={false}
+                className="h-[1.15em] w-[3.4em]"
+              />
+            </span>
+          </h1>
           <p className="mt-3 text-lg font-medium text-gray-200 sm:text-xl">Computer Science & Engineering student · Developer</p>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-400 sm:text-base">I’m a CSE student at NIT Rourkela who enjoys solving challenging problems, building meaningful software, and exploring new technologies. Currently focused on C++, Data Structures and Algorithms, competitive programming, and full-stack development.</p>
           <div className="mt-7 flex flex-wrap gap-3">
