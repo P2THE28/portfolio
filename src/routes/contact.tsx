@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { Mail, Send } from 'lucide-react'
 
 export const Route = createFileRoute('/contact')({
@@ -8,6 +8,32 @@ export const Route = createFileRoute('/contact')({
 
 function Contact() {
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setSubmitting(true)
+    setSubmitError(null)
+
+    const formData = new FormData(event.currentTarget)
+    const body = new URLSearchParams()
+    formData.forEach((value, key) => body.append(key, value.toString()))
+
+    try {
+      const response = await fetch('/contact.html', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString(),
+      })
+      if (!response.ok) throw new Error(`Contact form returned ${response.status}`)
+      setSubmitted(true)
+    } catch {
+      setSubmitError('Your message could not be sent. Please try again or email me directly.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   if (submitted) {
     return (
@@ -23,7 +49,7 @@ function Contact() {
             Thanks for reaching out. I'll get back to you as soon as possible.
           </p>
           <button
-            onClick={() => setSubmitted(false)}
+            onClick={() => { setSubmitted(false); setSubmitError(null) }}
             className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
           >
             Send Another Message
@@ -46,19 +72,7 @@ function Contact() {
           method="POST"
           data-netlify="true"
           netlify-honeypot="bot-field"
-          onSubmit={(e) => {
-            e.preventDefault()
-            const form = e.currentTarget
-            const formData = new FormData(form)
-            fetch('/contact.html', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: new URLSearchParams(
-                formData as unknown as Record<string, string>,
-              ).toString(),
-            })
-              .then(() => setSubmitted(true))
-          }}
+          onSubmit={handleSubmit}
           className="space-y-6"
         >
           <input type="hidden" name="form-name" value="contact" />
@@ -119,12 +133,15 @@ function Contact() {
             />
           </div>
 
+          {submitError && <p role="alert" className="rounded-lg border border-rose-300/40 bg-rose-300/10 px-4 py-3 text-sm text-rose-700">{submitError}</p>}
+
           <button
             type="submit"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
+            disabled={submitting}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium disabled:cursor-wait disabled:opacity-60"
           >
             <Send size={16} />
-            Send Message
+            {submitting ? 'Sending…' : 'Send Message'}
           </button>
         </form>
       </div>

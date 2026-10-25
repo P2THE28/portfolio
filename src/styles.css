@@ -25,10 +25,10 @@ html[data-theme='light'] {
   --page-bg: #f7f8fc;
   --card-bg: rgb(255 255 255 / 1%);
   --heatmap-empty: #fff;
-  --heatmap-level-1: #e8f5e9;
-  --heatmap-level-2: #b9e3b8;
-  --heatmap-level-3: #72bf78;
-  --heatmap-level-4: #27843d;
+  --heatmap-level-1: #c8e6c9;
+  --heatmap-level-2: #81c784;
+  --heatmap-level-3: #43a857;
+  --heatmap-level-4: #1b6e32;
   --hex-cool: #7c3aed;
   --hex-hot: #c026d3;
   --hex-line-alpha: 0.07;

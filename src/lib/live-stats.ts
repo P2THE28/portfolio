@@ -1,6 +1,15 @@
 import { profileConfig } from './profile-config'
 import { getLeetCodeStats } from './leetcode-provider.mjs'
 import type { LeetCodeResult } from './leetcode-provider.mjs'
+import {
+  parseCodeforcesRatingHistory,
+  parseCodeforcesSubmissions,
+  parseCodeforcesUsers,
+  parseGitHubEvents,
+  parseGitHubRepositories,
+  parseGitHubUser,
+  unwrapCodeforcesResult,
+} from './live-stats-validation.mjs'
 
 const CACHE_TTL = 30 * 60 * 1000
 const REQUEST_TIMEOUT = 12_000
@@ -59,9 +68,7 @@ function failure<T>(error: unknown): ProviderResult<T> {
   return { status: 'error', data: null, message }
 }
 
-type GhUser = { login: string; name: string | null; avatar_url: string; bio: string | null; html_url: string; public_repos: number; followers: number }
 type GhRepo = { name: string; description: string | null; language: string | null; stargazers_count: number; forks_count: number; html_url: string; updated_at: string; fork: boolean }
-type GhEvent = { type: string; repo: { name: string }; created_at: string | null; payload?: { commits?: Array<{ sha: string }> } }
 
 function normalizeGitHubActivity(payload: unknown): GitHubData['activity'] {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return null
@@ -93,17 +100,17 @@ export async function getGitHub(): Promise<ProviderResult<GitHubData>> {
       if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`
       const base = `https://api.github.com/users/${encodeURIComponent(profileConfig.githubUsername)}`
       const [user, repositories, events, activity] = await Promise.all([
-        fetchJson<GhUser>(base, headers),
+        fetchJson<unknown>(base, headers).then(parseGitHubUser),
         (async () => {
           const all: GhRepo[] = []
           for (let page = 1; page <= 3; page++) {
-            const batch = await fetchJson<GhRepo[]>(`${base}/repos?per_page=100&sort=updated&page=${page}`, headers)
+            const batch = parseGitHubRepositories(await fetchJson<unknown>(`${base}/repos?per_page=100&sort=updated&page=${page}`, headers))
             all.push(...batch)
             if (batch.length < 100) break
           }
           return all.filter((repo) => !repo.fork).sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at))
         })(),
-        fetchJson<GhEvent[]>(`${base}/events/public?per_page=30`, headers).catch(() => []),
+        fetchJson<unknown>(`${base}/events/public?per_page=30`, headers).then(parseGitHubEvents).catch(() => []),
         fetchJson<unknown>(`https://github-contributions-api.jogruber.de/v4/${encodeURIComponent(profileConfig.githubUsername)}?y=last`).then(normalizeGitHubActivity).catch(() => null),
       ])
       const languageCounts = new Map<string, number>()
@@ -119,16 +126,14 @@ export async function getGitHub(): Promise<ProviderResult<GitHubData>> {
   } catch (error) { return failure(error) }
 }
 
-type CfEnvelope<T> = { status: string; result?: T; comment?: string }
 type CfUser = { handle: string; rating?: number; rank?: string; maxRating?: number; maxRank?: string }
 type CfRating = { contestName: string; newRating: number; ratingUpdateTimeSeconds: number }
 type CfSubmission = { verdict?: string; contestId?: number; problem: { contestId?: number; index?: string; name?: string; rating?: number }; creationTimeSeconds: number }
 
-async function codeforcesRequest<T>(method: string, params: string): Promise<T> {
+async function codeforcesRequest<T>(method: string, params: string, validate: (value: unknown) => T): Promise<T> {
   return cached(`cf:${method}:${params}`, async () => {
-    const response = await fetchJson<CfEnvelope<T>>(`https://codeforces.com/api/${method}?${params}`, { 'User-Agent': 'PriyanshuPortfolio/1.0' })
-    if (response.status !== 'OK' || response.result === undefined) throw new Error(response.comment || 'Codeforces returned an invalid response')
-    return response.result
+    const response = await fetchJson<unknown>(`https://codeforces.com/api/${method}?${params}`, { 'User-Agent': 'PriyanshuPortfolio/1.0' })
+    return validate(unwrapCodeforcesResult(response))
   })
 }
 
@@ -136,9 +141,9 @@ export async function getCodeforces(): Promise<ProviderResult<CodeforcesData>> {
   try {
     const handle = encodeURIComponent(profileConfig.codeforcesHandle)
     const [users, history, submissions] = await Promise.all([
-      codeforcesRequest<CfUser[]>('user.info', `handles=${handle}`),
-      codeforcesRequest<CfRating[]>('user.rating', `handle=${handle}`).catch(() => []),
-      codeforcesRequest<CfSubmission[]>('user.status', `handle=${handle}`),
+      codeforcesRequest<CfUser[]>('user.info', `handles=${handle}`, parseCodeforcesUsers),
+      codeforcesRequest<CfRating[]>('user.rating', `handle=${handle}`, parseCodeforcesRatingHistory).catch(() => []),
+      codeforcesRequest<CfSubmission[]>('user.status', `handle=${handle}`, parseCodeforcesSubmissions),
     ])
     const user = users[0]
     if (!user) throw new Error('Codeforces profile was not found')

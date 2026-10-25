@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { allBlogs } from 'content-collections'
-import { marked } from 'marked'
+import { renderSafeMarkdown } from '@/lib/safe-markdown.mjs'
 import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, Calendar } from 'lucide-react'
 
@@ -27,7 +27,7 @@ function BlogPost() {
     )
   }
 
-  const html = marked(post.content)
+  const html = renderSafeMarkdown(post.content)
 
   return (
     <div className="min-h-screen ">

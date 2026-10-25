@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
-import { ArrowDownToLine, ArrowRight, ChevronDown, Mail, Moon, Sun } from 'lucide-react'
+import { ArrowDownToLine, ArrowRight, ChevronDown, Mail, Menu, Moon, Sun, X } from 'lucide-react'
 import { CodingDashboard } from '@/components/CodingDashboard'
 import { ProjectMarquee } from '@/components/ProjectMarquee'
 import { PlatformIcon, type Platform } from '@/components/PlatformIcon'
@@ -12,6 +12,24 @@ export const Route = createFileRoute('/')({ component: Home })
 function Home() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   const [aboutOpen, setAboutOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const navigationLinks = [
+    { label: 'Home', href: '#home' },
+    { label: 'About', href: '#about' },
+    { label: 'Skills', href: '#skills' },
+    { label: 'Projects', href: '#projects' },
+    { label: 'Coding Stats', href: '#coding-stats' },
+    { label: 'Contact', href: '#contact' },
+  ]
+
+  const handleNavigation = (event: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    setMobileMenuOpen(false)
+    if (href === '#contact') {
+      event.preventDefault()
+      document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
 
   useEffect(() => {
     if (window.location.hash === '#contact') {
@@ -33,21 +51,18 @@ function Home() {
     <main className="portfolio-shell min-h-screen overflow-x-hidden">
       <HexGlowBackground />
       <nav className="portfolio-nav sticky top-0 z-30 border-b backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-3.5 sm:px-8">
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-5 py-3.5 sm:px-8">
           <a href="#home" className="flex shrink-0 items-center gap-2.5 font-semibold tracking-tight text-white" aria-label="Priyanshu Kumar, home"><span className="font-mono text-xl text-cyan-400">&lt;/&gt;</span><span className="hidden sm:inline">Priyanshu Kumar</span><span className="sm:hidden">p2the28</span></a>
-          <div className="flex items-center gap-3 overflow-x-auto text-xs text-gray-400 sm:gap-6 sm:text-sm">
-            <a href="#home" className="transition hover:text-cyan-300">Home</a>
-            <a href="#about" className="hidden transition hover:text-cyan-300 sm:inline">About</a>
-            <a href="#skills" className="transition hover:text-cyan-300">Skills</a>
-            <a href="#projects" className="transition hover:text-cyan-300">Projects</a>
-            <a href="#coding-stats" className="whitespace-nowrap transition hover:text-cyan-300">Coding Stats</a>
-            <a href="#contact" onClick={(event) => { event.preventDefault(); document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }) }} className="transition hover:text-cyan-300">Contact</a>
+          <div className="ml-auto hidden items-center gap-6 text-sm text-gray-400 lg:flex">
+            {navigationLinks.map(({ label, href }) => <a key={href} href={href} onClick={(event) => handleNavigation(event, href)} className="whitespace-nowrap transition hover:text-cyan-300">{label}</a>)}
           </div>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2 lg:ml-0">
             <button type="button" onClick={() => setTheme((value) => value === 'dark' ? 'light' : 'dark')} aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to midnight theme'} className="grid h-9 w-9 place-items-center rounded-lg text-violet-300 transition hover:bg-white/5 hover:text-cyan-300">{theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}</button>
-            <a href={profileConfig.resumeUrl} download className="inline-flex items-center gap-2 rounded-lg border border-cyan-400/50 px-3 py-2 text-xs font-medium text-cyan-200 transition hover:bg-cyan-400/10 sm:px-4 sm:text-sm">Resume <ArrowDownToLine size={14} /></a>
+            <a href={profileConfig.resumeUrl} download aria-label="Download resume" className="inline-flex h-9 items-center gap-2 rounded-lg border border-cyan-400/50 px-2.5 py-2 text-xs font-medium text-cyan-200 transition hover:bg-cyan-400/10 sm:px-4 sm:text-sm"><span className="hidden sm:inline">Resume</span><ArrowDownToLine size={14} /></a>
+            <button type="button" onClick={() => setMobileMenuOpen((open) => !open)} aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-expanded={mobileMenuOpen} aria-controls="mobile-navigation" className="grid h-9 w-9 place-items-center rounded-lg text-gray-300 transition hover:bg-white/5 hover:text-cyan-300 lg:hidden">{mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}</button>
           </div>
         </div>
+        {mobileMenuOpen && <div id="mobile-navigation" className="border-t border-[var(--border-color)] px-5 py-3 lg:hidden sm:px-8"><div className="mx-auto grid max-w-6xl grid-cols-2 gap-1">{navigationLinks.map(({ label, href }) => <a key={href} href={href} onClick={(event) => handleNavigation(event, href)} className="rounded-lg px-3 py-2.5 text-sm text-gray-300 transition hover:bg-white/5 hover:text-cyan-300">{label}</a>)}</div></div>}
       </nav>
 
       <section id="home" className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 sm:px-8 sm:py-20 lg:min-h-[620px] lg:grid-cols-[1.15fr_.85fr] lg:py-10">

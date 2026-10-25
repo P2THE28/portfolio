@@ -4,6 +4,7 @@ type TrailPoint = { x: number; y: number; time: number }
 type Cell = { x: number; y: number }
 
 const TRAIL_LENGTH_MS = 3_000
+const FRAME_INTERVAL_MS = 1000 / 60
 
 function rgba(hex: string, alpha: number) {
   const value = hex.replace('#', '')
@@ -144,7 +145,7 @@ export function HexGlowBackground() {
     }
 
     const animate = (now: number) => {
-      if (now - lastFrame < 30) {
+      if (now - lastFrame < FRAME_INTERVAL_MS) {
         animationFrame = window.requestAnimationFrame(animate)
         return
       }
@@ -164,7 +165,7 @@ export function HexGlowBackground() {
       if (motionPreference.matches) return
       const now = performance.now()
       const previous = trail[trail.length - 1]
-      if (!previous || now - previous.time > 28 || Math.hypot(event.clientX - previous.x, event.clientY - previous.y) > 8) {
+      if (!previous || now - previous.time > 10 || Math.hypot(event.clientX - previous.x, event.clientY - previous.y) > 3) {
         trail.push({ x: event.clientX, y: event.clientY, time: now })
       }
       scheduleGlow()
