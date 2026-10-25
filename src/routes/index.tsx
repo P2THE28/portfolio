@@ -46,10 +46,9 @@ function Home() {
       <section id="home" className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 sm:px-8 sm:py-20 lg:min-h-[620px] lg:grid-cols-[1.15fr_.85fr]">
         <div id="about" className="relative z-10 w-full text-left">
           <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/[0.06] px-3 py-1.5 font-mono text-[11px] tracking-[0.12em] text-cyan-200">COMPUTER SCIENCE · NIT ROURKELA</p>
-          <p className="mb-1 text-lg text-gray-300">Hi, I’m</p>
           <h1 className="max-w-[14ch] text-4xl font-bold leading-[1.08] tracking-tight text-white sm:max-w-none sm:text-6xl">{profileConfig.name}</h1>
           <p className="mt-3 text-lg font-medium text-gray-200 sm:text-xl">Computer Science & Engineering student · Developer</p>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-400 sm:text-base">I build practical software and enjoy competitive programming, data structures, and exploring AI/ML. I’m focused on learning through projects and solving meaningful problems.</p>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-400 sm:text-base">I’m a CSE student at NIT Rourkela who enjoys solving challenging problems, building meaningful software, and exploring new technologies. Currently focused on C++, Data Structures and Algorithms, competitive programming, and full-stack development.</p>
           <div className="mt-7 flex flex-wrap gap-3">
             <a href="#projects" className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300">View my projects <ArrowRight size={16} /></a>
             <a href={`mailto:${profileConfig.email}`} className="inline-flex items-center gap-2 rounded-xl border border-violet-300/50 px-5 py-3 text-sm font-medium text-gray-200 transition hover:bg-violet-300/10"><Mail size={15} /> Contact me</a>
@@ -63,6 +62,16 @@ function Home() {
           <div className="theme-card relative overflow-hidden rounded-[28px] border border-[var(--border-color)] bg-[var(--card-bg)] p-2.5 shadow-2xl shadow-cyan-950/20">
             <img src="/profile-photo.jpg" alt="Priyanshu Kumar" className="aspect-[4/4.25] w-full rounded-[21px] object-cover object-center" />
             <div className="flex items-center justify-between gap-4 px-3 py-3.5"><div><p className="text-sm font-semibold text-white">Priyanshu Kumar</p><p className="mt-0.5 text-xs text-gray-400">NIT Rourkela · CSE</p></div><span className="inline-flex items-center gap-2 rounded-full border border-cyan-300/15 bg-cyan-300/[0.06] px-3 py-1.5 text-[11px] text-cyan-200"><span className="h-1.5 w-1.5 rounded-full bg-cyan-300" /> Building & learning</span></div>
+            <section aria-labelledby="about-me-heading" className="border-t border-[var(--border-color)] px-3 pb-4 pt-4 sm:px-4">
+              <p className="mb-1.5 font-mono text-[10px] tracking-[0.18em] text-violet-300">A LITTLE ABOUT ME</p>
+              <h2 id="about-me-heading" className="text-xl font-semibold tracking-tight text-white">About Me</h2>
+              <div className="mt-3 space-y-3 text-sm leading-6 text-gray-400">
+                <p>I’m a Computer Science and Engineering student at NIT Rourkela with a strong interest in problem-solving, software engineering, and emerging technologies.</p>
+                <p>I enjoy solving Data Structures and Algorithms problems using C++, participating in competitive programming, and building practical projects that turn ideas into working solutions. I’m continuously strengthening my understanding of algorithms, backend development, and modern web technologies while exploring the possibilities of AI and machine learning.</p>
+                <p>Beyond coding, I enjoy photography and creative work, which help me approach problems from different perspectives. I believe in learning by building, improving through consistency, and writing software that is useful, reliable, and well-engineered.</p>
+              </div>
+              <p className="mt-4 rounded-xl border border-violet-300/15 bg-violet-300/[0.04] px-3 py-2.5 text-xs leading-5 text-gray-300"><span className="font-semibold text-violet-300">Currently focused on:</span> Competitive Programming, Full-Stack Development, and AI/ML.</p>
+            </section>
           </div>
         </div>
       </section>
