@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { CodingDashboard } from '@/components/CodingDashboard'
+import { ProjectMarquee } from '@/components/ProjectMarquee'
 import { PlatformIcon, type Platform } from '@/components/PlatformIcon'
+import TechText from '@/components/TechText.jsx'
 import { profileConfig, profileLinks } from '@/lib/profile-config'
 
 export const Route = createFileRoute('/')({ component: Home })
@@ -23,7 +25,8 @@ function Home() {
       <section id="home" className="mx-auto grid min-h-[72vh] max-w-6xl items-center gap-12 px-5 py-20 sm:px-8 md:grid-cols-[1.2fr_.8fr]">
         <div>
           <p className="mb-5 font-mono text-sm text-cyan-300">COMPUTER SCIENCE · NIT ROURKELA</p>
-          <h1 className="text-4xl font-bold leading-tight sm:text-6xl">Hi, I’m <span className="bg-gradient-to-r from-blue-300 to-cyan-300 bg-clip-text text-transparent">{profileConfig.name}</span></h1>
+          <h1 className="text-4xl font-bold leading-tight sm:text-6xl">Hi, I’m</h1>
+          <TechText text={profileConfig.name} fontWeight={700} fontSize={112} color="#93c5fd" accentColor="#67e8f9" align="left" intro="assemble" introDuration={1.8} labels={false} guides={false} selection={false} draggable={false} className="h-24 max-w-[650px] sm:h-28" />
           <p className="mt-5 text-xl text-gray-300">{profileConfig.role}</p>
           <p className="mt-4 max-w-2xl leading-relaxed text-gray-400">I enjoy {profileConfig.interests.join(', ').toLowerCase()}, with a focus on building useful software and solving challenging problems.</p>
           <div className="mt-8 flex flex-wrap gap-3">
@@ -35,21 +38,14 @@ function Home() {
             {Object.entries(profileLinks).map(([name, url]) => <a key={name} href={url} target="_blank" rel="noreferrer" aria-label={`Open ${name} profile`} title={name} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-800 text-gray-400 transition hover:border-cyan-400/60 hover:text-cyan-300"><PlatformIcon platform={name as Platform} size={19} /></a>)}
           </div>
         </div>
-        <div className="rounded-2xl border border-gray-800 bg-[#12121b] p-6 font-mono text-sm shadow-2xl shadow-cyan-950/30">
-          <p className="text-gray-500">// developer profile</p>
-          <pre className="mt-4 whitespace-pre-wrap leading-7"><span className="text-purple-300">const</span> developer = {'{'}{'\n'}  name: <span className="text-green-300">"{profileConfig.name}"</span>,{'\n'}  focus: <span className="text-green-300">"{profileConfig.primaryLanguage}"</span>,{'\n'}  interests: [{profileConfig.interests.slice(0, 2).map((interest) => <span key={interest} className="text-green-300">"{interest}"</span>).reduce((a, b) => <>{a}, {b}</>)}],{'\n'}{'}'}</pre>
+        <div className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border border-gray-800 shadow-2xl shadow-cyan-950/30">
+          <img src="/profile-photo.jpg" alt="Priyanshu Kumar" className="aspect-[4/5] w-full object-cover object-center" />
         </div>
       </section>
 
       <CodingDashboard />
 
-      <section id="projects" className="border-t border-gray-900 py-16">
-        <div className="mx-auto max-w-6xl px-5 sm:px-8">
-          <h2 className="text-3xl font-bold">Projects</h2>
-          <p className="mt-3 max-w-2xl text-gray-400">Recent public repositories are loaded from GitHub in the coding statistics section above.</p>
-          <a href={`${profileLinks.github}?tab=repositories`} target="_blank" rel="noreferrer" className="mt-6 inline-block text-cyan-300 hover:text-cyan-200">Browse all repositories ↗</a>
-        </div>
-      </section>
+      <ProjectMarquee />
 
       <footer id="contact" className="border-t border-gray-900 py-10 text-center text-sm text-gray-500">
         <p>Interested in collaborating or talking tech?</p>
