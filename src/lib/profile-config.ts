@@ -16,4 +16,6 @@ export const profileLinks = {
   codeforces: `https://codeforces.com/profile/${profileConfig.codeforcesHandle}`,
   leetcode: `https://leetcode.com/${profileConfig.leetcodeUsername}`,
   linkedin: 'https://www.linkedin.com/in/p2the28/',
+  x: 'https://x.com/p2the28',
+  instagram: 'https://www.instagram.com/p2the28/',
 } as const

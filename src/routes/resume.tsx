@@ -12,6 +12,8 @@ function App() {
     { label: 'LinkedIn', href: 'https://www.linkedin.com/in/p2the28/', platform: 'linkedin' as Platform },
     { label: 'Codeforces', href: 'https://codeforces.com/profile/p2the28', platform: 'codeforces' as Platform },
     { label: 'LeetCode', href: 'https://leetcode.com/p2the28', platform: 'leetcode' as Platform },
+    { label: 'X', href: 'https://x.com/p2the28', platform: 'x' as Platform },
+    { label: 'Instagram', href: 'https://www.instagram.com/p2the28/', platform: 'instagram' as Platform },
     { label: 'CodeChef', href: 'https://www.codechef.com/users/p2the285' },
   ]
 
