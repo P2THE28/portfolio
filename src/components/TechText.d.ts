@@ -8,6 +8,7 @@ type TechTextProps = {
   letterSpacing?: number
   color?: string
   accentColor?: string
+  gradient?: boolean
   align?: 'left' | 'center' | 'right'
   reach?: number
   softness?: number

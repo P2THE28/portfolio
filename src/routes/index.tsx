@@ -71,38 +71,25 @@ function Home() {
           <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/[0.06] px-3 py-1.5 font-mono text-[11px] tracking-[0.12em] text-cyan-200">COMPUTER SCIENCE · NIT ROURKELA</p>
           <h1 className="max-w-full text-3xl font-bold leading-[1.12] tracking-tight text-[var(--text-primary)] sm:text-5xl">
             <span className="block">Hi, I’m</span>
-            <span className="flex w-fit items-center gap-x-[0.08em] whitespace-nowrap">
+            <span className="block w-full">
               <TechText
-                text="Priyanshu"
+                text="Priyanshu Kumar"
                 fontSize={150}
                 fontWeight={700}
                 color={theme === 'dark' ? '#84c8ff' : '#1673bf'}
                 accentColor={theme === 'dark' ? '#42dcf5' : '#0891b2'}
+                gradient
+                letterSpacing={-0.025}
                 align="left"
                 intro="type"
                 introDuration={1.15}
                 labels={false}
                 selection={false}
                 draggable={false}
+                reveal="none"
                 sweep={false}
                 clickKick={false}
-                className="h-[1.15em] w-[5.4em] shrink-0"
-              />
-              <TechText
-                text="Kumar"
-                fontSize={150}
-                fontWeight={700}
-                color={theme === 'dark' ? '#42dcf5' : '#0788a6'}
-                accentColor={theme === 'dark' ? '#84c8ff' : '#1673bf'}
-                align="left"
-                intro="type"
-                introDuration={1.15}
-                labels={false}
-                selection={false}
-                draggable={false}
-                sweep={false}
-                clickKick={false}
-                className="h-[1.15em] w-[3.6em] shrink-0"
+                className="block h-[1.15em] w-full"
               />
             </span>
           </h1>

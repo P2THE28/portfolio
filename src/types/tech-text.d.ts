@@ -9,6 +9,7 @@ declare module '@/components/TechText.jsx' {
     letterSpacing?: number
     color?: string
     accentColor?: string
+    gradient?: boolean
     align?: 'left' | 'center' | 'right'
     reach?: number
     softness?: number
@@ -16,7 +17,7 @@ declare module '@/components/TechText.jsx' {
     dashGap?: number
     strokeWidth?: number
     lineStyle?: 'dashed' | 'solid'
-    reveal?: string
+    reveal?: 'letter' | 'area' | 'none'
     specks?: number
     selection?: boolean
     labels?: boolean
@@ -25,7 +26,7 @@ declare module '@/components/TechText.jsx' {
     sweep?: boolean
     speed?: number
     clickKick?: boolean
-    intro?: string
+    intro?: 'none' | 'type' | 'assemble' | 'metrics'
     introDuration?: number
     guides?: boolean
     className?: string

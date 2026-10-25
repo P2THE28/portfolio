@@ -31,6 +31,18 @@ const noise = (...values) => {
 
 const signed = value => (value > 0 ? `+${value}` : value < 0 ? `−${-value}` : '0');
 
+const mixHex = (start, end, amount) => {
+  const parse = value => {
+    const hex = String(value).replace(/^#/, '');
+    if (!/^[\da-f]{6}$/i.test(hex)) return null;
+    return [0, 2, 4].map(index => Number.parseInt(hex.slice(index, index + 2), 16));
+  };
+  const from = parse(start);
+  const to = parse(end);
+  if (!from || !to) return start;
+  return `rgb(${from.map((channel, index) => Math.round(channel + (to[index] - channel) * amount)).join(', ')})`;
+};
+
 const TechText = ({
   text = 'React Bits',
   fontFamily = '',
@@ -39,6 +51,7 @@ const TechText = ({
   letterSpacing = -0.05,
   color = 'currentColor',
   accentColor = 'currentColor',
+  gradient = false,
   align = 'center',
   reach = 200,
   softness = 0.7,
@@ -75,6 +88,7 @@ const TechText = ({
       letterSpacing,
       color,
       accentColor,
+      gradient,
       align,
       reach,
       softness,
@@ -194,7 +208,7 @@ const TechText = ({
       return { image, left, top };
     };
 
-    const ensureLayout = (s, ink) => {
+    const ensureLayout = (s, ink, accent) => {
       const key = [
         s.text,
         family(s),
@@ -203,6 +217,8 @@ const TechText = ({
         s.letterSpacing,
         s.align,
         ink,
+        accent,
+        s.gradient,
         s.dashLength,
         s.dashGap,
         s.strokeWidth,
@@ -297,7 +313,7 @@ const TechText = ({
           cells: null,
           assembled: 0,
           index: i,
-          fill: sprite(s, next, base, false, ink),
+          fill: sprite(s, next, base, false, s.gradient ? mixHex(ink, accent, i / Math.max(1, chars.length - 1)) : ink),
           dashes: sprite(s, next, base, true, ink)
         });
       });
@@ -683,7 +699,7 @@ const TechText = ({
       const dt = Math.min(0.05, Math.max(0.001, (now - last) / 1000));
       last = now;
       const { ink, accent } = palette(s);
-      const view = ensureLayout(s, ink);
+      const view = ensureLayout(s, ink, accent);
       const damping = 2 * Math.sqrt(SPRING) * (1 - clamp01(s.bounce) * 0.96);
 
       if (s.intro !== introKind) {
