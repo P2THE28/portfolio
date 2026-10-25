@@ -17,6 +17,7 @@ export type GitHubData = {
   profile: { username: string; name: string | null; avatarUrl: string; bio: string | null; url: string; publicRepos: number; followers: number }
   repositories: Array<{ name: string; description: string | null; language: string | null; stars: number; forks: number; url: string; updatedAt: string }>
   languages: Array<{ name: string; count: number }>
+  activity: Array<{ date: string; count: number }> | null
   recentActivity: Array<{ type: string; repo: string; createdAt: string; url: string }>
 }
 
@@ -62,13 +63,36 @@ type GhUser = { login: string; name: string | null; avatar_url: string; bio: str
 type GhRepo = { name: string; description: string | null; language: string | null; stargazers_count: number; forks_count: number; html_url: string; updated_at: string; fork: boolean }
 type GhEvent = { type: string; repo: { name: string }; created_at: string | null; payload?: { commits?: Array<{ sha: string }> } }
 
+function normalizeGitHubActivity(payload: unknown): GitHubData['activity'] {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return null
+  const contributions = (payload as { contributions?: unknown }).contributions
+  if (!Array.isArray(contributions) || contributions.length < 350 || contributions.length > 370) return null
+  const activity: Array<{ date: string; count: number }> = []
+  const seen = new Set<string>()
+  for (const entry of contributions) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return null
+    const day = entry as { date?: unknown; count?: unknown; level?: unknown }
+    if (typeof day.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(day.date) || new Date(`${day.date}T00:00:00Z`).toISOString().slice(0, 10) !== day.date) return null
+    if (!Number.isSafeInteger(day.count) || (day.count as number) < 0 || !Number.isInteger(day.level) || (day.level as number) < 0 || (day.level as number) > 4 || seen.has(day.date)) return null
+    seen.add(day.date)
+    activity.push({ date: day.date, count: day.count as number })
+  }
+  activity.sort((a, b) => a.date.localeCompare(b.date))
+  for (let index = 1; index < activity.length; index++) {
+    const previous = new Date(`${activity[index - 1].date}T00:00:00Z`)
+    previous.setUTCDate(previous.getUTCDate() + 1)
+    if (previous.toISOString().slice(0, 10) !== activity[index].date) return null
+  }
+  return activity
+}
+
 export async function getGitHub(): Promise<ProviderResult<GitHubData>> {
   try {
     return result(await cached(`github:${profileConfig.githubUsername}`, async () => {
       const headers: Record<string, string> = { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' }
       if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`
       const base = `https://api.github.com/users/${encodeURIComponent(profileConfig.githubUsername)}`
-      const [user, repositories, events] = await Promise.all([
+      const [user, repositories, events, activity] = await Promise.all([
         fetchJson<GhUser>(base, headers),
         (async () => {
           const all: GhRepo[] = []
@@ -80,6 +104,7 @@ export async function getGitHub(): Promise<ProviderResult<GitHubData>> {
           return all.filter((repo) => !repo.fork).sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at))
         })(),
         fetchJson<GhEvent[]>(`${base}/events/public?per_page=30`, headers).catch(() => []),
+        fetchJson<unknown>(`https://github-contributions-api.jogruber.de/v4/${encodeURIComponent(profileConfig.githubUsername)}?y=last`).then(normalizeGitHubActivity).catch(() => null),
       ])
       const languageCounts = new Map<string, number>()
       for (const repo of repositories) if (repo.language) languageCounts.set(repo.language, (languageCounts.get(repo.language) ?? 0) + 1)
@@ -87,6 +112,7 @@ export async function getGitHub(): Promise<ProviderResult<GitHubData>> {
         profile: { username: user.login, name: user.name, avatarUrl: user.avatar_url, bio: user.bio, url: user.html_url, publicRepos: user.public_repos, followers: user.followers },
         repositories: repositories.map((repo) => ({ name: repo.name, description: repo.description, language: repo.language, stars: repo.stargazers_count, forks: repo.forks_count, url: repo.html_url, updatedAt: repo.updated_at })),
         languages: [...languageCounts].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count),
+        activity,
         recentActivity: events.filter((event) => event.created_at).slice(0, 8).map((event) => ({ type: event.type, repo: event.repo.name, createdAt: event.created_at!, url: `https://github.com/${event.repo.name}` })),
       }
     }))

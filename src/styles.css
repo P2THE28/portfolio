@@ -4,6 +4,24 @@
 
 @custom-variant dark (&:is(.dark *));
 
+:root {
+  --page-bg: #0b1020;
+  --card-bg: #151d33;
+  --border-color: rgb(148 163 184 / 15%);
+  --text-primary: #f1f5f9;
+  --text-muted: #94a3b8;
+  color-scheme: dark;
+}
+
+html[data-theme='light'] {
+  --page-bg: #f4f7fb;
+  --card-bg: #fff;
+  --border-color: rgb(71 85 105 / 18%);
+  --text-primary: #0f172a;
+  --text-muted: #475569;
+  color-scheme: light;
+}
+
 body {
   @apply m-0;
   font-family:
@@ -11,7 +29,35 @@ body {
     'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--page-bg);
+  color: var(--text-primary);
 }
+
+.portfolio-shell {
+  color: var(--text-primary);
+  background-color: var(--page-bg);
+  background-image: radial-gradient(ellipse at 73% 8%, rgb(34 211 238 / 6%), transparent 27%), radial-gradient(ellipse at 9% 29%, rgb(167 139 250 / 5%), transparent 25%);
+}
+
+.portfolio-nav {
+  background-color: color-mix(in srgb, var(--page-bg) 90%, transparent);
+  border-color: var(--border-color);
+}
+
+.theme-card {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+}
+
+html[data-theme='light'] .portfolio-shell .text-white { color: #0f172a !important; }
+html[data-theme='light'] .portfolio-shell .text-gray-200 { color: #1e293b !important; }
+html[data-theme='light'] .portfolio-shell .text-gray-300 { color: #334155 !important; }
+html[data-theme='light'] .portfolio-shell .text-gray-400 { color: #475569 !important; }
+html[data-theme='light'] .portfolio-shell .text-gray-500,
+html[data-theme='light'] .portfolio-shell .text-gray-600 { color: #64748b !important; }
+html[data-theme='light'] .portfolio-shell .border-gray-900,
+html[data-theme='light'] .portfolio-shell .border-gray-800,
+html[data-theme='light'] .portfolio-shell .border-gray-700 { border-color: var(--border-color) !important; }
 
 code {
   font-family:
@@ -223,6 +269,6 @@ html {
 }
 
 body {
-  background-color: #0a0a0f;
-  color: white;
+  background-color: var(--page-bg);
+  color: var(--text-primary);
 }

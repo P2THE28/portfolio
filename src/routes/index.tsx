@@ -1,56 +1,96 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import { ArrowDownToLine, ArrowRight, Mail, Moon, Sun } from 'lucide-react'
 import { CodingDashboard } from '@/components/CodingDashboard'
 import { ProjectMarquee } from '@/components/ProjectMarquee'
 import { PlatformIcon, type Platform } from '@/components/PlatformIcon'
-import TechText from '@/components/TechText.jsx'
 import { profileConfig, profileLinks } from '@/lib/profile-config'
 
 export const Route = createFileRoute('/')({ component: Home })
 
 function Home() {
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+
+  useEffect(() => {
+    try {
+      const savedTheme = window.localStorage.getItem('portfolio-theme')
+      if (savedTheme === 'light' || savedTheme === 'dark') setTheme(savedTheme)
+    } catch { /* Keep the default theme when storage is unavailable. */ }
+  }, [])
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    try { window.localStorage.setItem('portfolio-theme', theme) } catch { /* Theme switching still works for this page. */ }
+  }, [theme])
+
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#0a0a0f] text-white">
-      <nav className="sticky top-0 z-20 border-b border-gray-800/70 bg-[#0a0a0f]/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
-          <a href="#home" className="font-mono font-bold text-cyan-300">&lt;p2the28 /&gt;</a>
-          <div className="flex items-center gap-4 text-sm text-gray-400 sm:gap-6">
-            <a href="#coding-stats" className="hover:text-cyan-300">Coding stats</a>
-            <a href="#projects" className="hover:text-cyan-300">Projects</a>
-            <a href="#contact" className="hover:text-cyan-300">Contact</a>
+    <main className="portfolio-shell min-h-screen overflow-x-hidden">
+      <nav className="portfolio-nav sticky top-0 z-30 border-b backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-3.5 sm:px-8">
+          <a href="#home" className="flex shrink-0 items-center gap-2.5 font-semibold tracking-tight text-white" aria-label="Priyanshu Kumar, home"><span className="font-mono text-xl text-cyan-400">&lt;/&gt;</span><span className="hidden sm:inline">Priyanshu Kumar</span><span className="sm:hidden">p2the28</span></a>
+          <div className="flex items-center gap-3 overflow-x-auto text-xs text-gray-400 sm:gap-6 sm:text-sm">
+            <a href="#home" className="transition hover:text-cyan-300">Home</a>
+            <a href="#about" className="hidden transition hover:text-cyan-300 sm:inline">About</a>
+            <a href="#skills" className="transition hover:text-cyan-300">Skills</a>
+            <a href="#projects" className="transition hover:text-cyan-300">Projects</a>
+            <a href="#coding-stats" className="whitespace-nowrap transition hover:text-cyan-300">Coding Stats</a>
+            <a href="#contact" className="transition hover:text-cyan-300">Contact</a>
           </div>
-          <a href={profileConfig.resumeUrl} className="hidden rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500 sm:block">Resume</a>
+          <div className="flex shrink-0 items-center gap-2">
+            <button type="button" onClick={() => setTheme((value) => value === 'dark' ? 'light' : 'dark')} aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to midnight theme'} className="grid h-9 w-9 place-items-center rounded-lg text-violet-300 transition hover:bg-white/5 hover:text-cyan-300">{theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}</button>
+            <a href={profileConfig.resumeUrl} download className="inline-flex items-center gap-2 rounded-lg border border-cyan-400/50 px-3 py-2 text-xs font-medium text-cyan-200 transition hover:bg-cyan-400/10 sm:px-4 sm:text-sm">Resume <ArrowDownToLine size={14} /></a>
+          </div>
         </div>
       </nav>
 
-      <section id="home" className="mx-auto grid min-h-[72vh] max-w-6xl items-center gap-12 px-5 py-20 sm:px-8 md:grid-cols-[1.2fr_.8fr]">
-        <div>
-          <p className="mb-5 font-mono text-sm text-cyan-300">COMPUTER SCIENCE · NIT ROURKELA</p>
-          <h1 className="text-4xl font-bold leading-tight sm:text-6xl">Hi, I’m</h1>
-          <TechText text={profileConfig.name} fontWeight={700} fontSize={112} color="#93c5fd" accentColor="#67e8f9" align="left" intro="assemble" introDuration={1.8} labels={false} guides={false} selection={false} draggable={false} className="h-24 max-w-[650px] sm:h-28" />
-          <p className="mt-5 text-xl text-gray-300">{profileConfig.role}</p>
-          <p className="mt-4 max-w-2xl leading-relaxed text-gray-400">I enjoy {profileConfig.interests.join(', ').toLowerCase()}, with a focus on building useful software and solving challenging problems.</p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <a href="#projects" className="rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 px-5 py-3 font-medium hover:opacity-90">Explore projects</a>
-            <a href={`mailto:${profileConfig.email}`} className="rounded-lg border border-gray-700 px-5 py-3 font-medium text-gray-200 hover:border-cyan-400">Contact me</a>
-            <a href={profileConfig.resumeUrl} download className="rounded-lg border border-gray-700 px-5 py-3 font-medium text-gray-200 hover:border-cyan-400">Download resume</a>
+      <section id="home" className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 sm:px-8 sm:py-20 lg:min-h-[620px] lg:grid-cols-[1.15fr_.85fr]">
+        <div id="about" className="relative z-10 w-full text-left">
+          <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/[0.06] px-3 py-1.5 font-mono text-[11px] tracking-[0.12em] text-cyan-200">COMPUTER SCIENCE · NIT ROURKELA</p>
+          <p className="mb-1 text-lg text-gray-300">Hi, I’m</p>
+          <h1 className="max-w-[14ch] text-4xl font-bold leading-[1.08] tracking-tight text-white sm:max-w-none sm:text-6xl">{profileConfig.name}</h1>
+          <p className="mt-3 text-lg font-medium text-gray-200 sm:text-xl">Computer Science & Engineering student · Developer</p>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-400 sm:text-base">I build practical software and enjoy competitive programming, data structures, and exploring AI/ML. I’m focused on learning through projects and solving meaningful problems.</p>
+          <div className="mt-7 flex flex-wrap gap-3">
+            <a href="#projects" className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300">View my projects <ArrowRight size={16} /></a>
+            <a href={`mailto:${profileConfig.email}`} className="inline-flex items-center gap-2 rounded-xl border border-violet-300/50 px-5 py-3 text-sm font-medium text-gray-200 transition hover:bg-violet-300/10"><Mail size={15} /> Contact me</a>
           </div>
-          <div className="mt-8 flex flex-wrap gap-4 text-sm text-gray-400">
-            {Object.entries(profileLinks).map(([name, url]) => <a key={name} href={url} target="_blank" rel="noreferrer" aria-label={`Open ${name} profile`} title={name} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-800 text-gray-400 transition hover:border-cyan-400/60 hover:text-cyan-300"><PlatformIcon platform={name as Platform} size={19} /></a>)}
+          <div className="mt-7 flex flex-wrap items-center gap-2.5" aria-label="Social profiles">
+            {Object.entries(profileLinks).map(([name, url]) => <a key={name} href={url} target="_blank" rel="noreferrer" aria-label={`Open ${name} profile`} title={name} className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--card-bg)] text-gray-300 transition hover:-translate-y-0.5 hover:border-cyan-400/60 hover:text-cyan-300"><PlatformIcon platform={name as Platform} size={18} /></a>)}
           </div>
         </div>
-        <div className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border border-gray-800 shadow-2xl shadow-cyan-950/30">
-          <img src="/profile-photo.jpg" alt="Priyanshu Kumar" className="aspect-[4/5] w-full object-cover object-center" />
+        <div className="relative mx-auto w-full max-w-md">
+          <div className="absolute -inset-3 rounded-[32px] border border-cyan-300/10" />
+          <div className="theme-card relative overflow-hidden rounded-[28px] border border-[var(--border-color)] bg-[var(--card-bg)] p-2.5 shadow-2xl shadow-cyan-950/20">
+            <img src="/profile-photo.jpg" alt="Priyanshu Kumar" className="aspect-[4/4.25] w-full rounded-[21px] object-cover object-center" />
+            <div className="flex items-center justify-between gap-4 px-3 py-3.5"><div><p className="text-sm font-semibold text-white">Priyanshu Kumar</p><p className="mt-0.5 text-xs text-gray-400">NIT Rourkela · CSE</p></div><span className="inline-flex items-center gap-2 rounded-full border border-cyan-300/15 bg-cyan-300/[0.06] px-3 py-1.5 text-[11px] text-cyan-200"><span className="h-1.5 w-1.5 rounded-full bg-cyan-300" /> Building & learning</span></div>
+          </div>
         </div>
       </section>
 
       <CodingDashboard />
 
+      <section id="skills" aria-labelledby="skills-heading" className="border-b border-[var(--border-color)] py-14 sm:py-18">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8">
+          <div className="mb-8"><p className="mb-2 font-mono text-xs tracking-[0.18em] text-violet-300">TOOLKIT</p><h2 id="skills-heading" className="text-3xl font-semibold tracking-tight text-white">Technical skills</h2><p className="mt-2 text-sm text-gray-400">Grouped by how I use them to build and solve problems.</p></div>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            {skillGroups.map((group) => <section key={group.title} className="theme-card rounded-2xl border border-[var(--border-color)] bg-[var(--card-bg)] p-5"><h3 className="text-sm font-semibold text-white">{group.title}</h3><ul className="mt-4 flex flex-wrap gap-2">{group.items.map((item) => <li key={item} className="rounded-full border border-[var(--border-color)] px-2.5 py-1 text-xs text-gray-300">{item}</li>)}</ul></section>)}
+          </div>
+        </div>
+      </section>
+
       <ProjectMarquee />
 
-      <footer id="contact" className="border-t border-gray-900 py-10 text-center text-sm text-gray-500">
-        <p>Interested in collaborating or talking tech?</p>
-        <a href={`mailto:${profileConfig.email}`} className="mt-2 inline-block text-cyan-300 hover:text-cyan-200">{profileConfig.email}</a>
+      <footer id="contact" className="border-t border-[var(--border-color)] py-8">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-5 px-5 text-center sm:flex-row sm:px-8 sm:text-left"><div><a href="#home" className="font-mono font-bold text-cyan-300">&lt;/&gt; Priyanshu Kumar</a><p className="mt-1 text-xs text-gray-500">Building, learning, and growing every day.</p></div><div className="flex items-center gap-5 text-xs text-gray-400"><a href="#home" className="hover:text-cyan-300">Home</a><a href="#projects" className="hover:text-cyan-300">Projects</a><a href="#coding-stats" className="hover:text-cyan-300">Coding Stats</a></div><a href={`mailto:${profileConfig.email}`} className="text-sm text-cyan-300 hover:text-cyan-200">{profileConfig.email}</a></div>
       </footer>
     </main>
   )
 }
+
+const skillGroups = [
+  { title: 'Languages', items: ['C++', 'Python', 'JavaScript', 'TypeScript'] },
+  { title: 'Frontend', items: ['React', 'HTML5', 'CSS3', 'Tailwind CSS'] },
+  { title: 'Backend', items: ['Flask', 'Firebase Auth', 'Cloud Firestore'] },
+  { title: 'Tools', items: ['Git', 'GitHub', 'VS Code', 'Jupyter', 'Docker', 'Netlify'] },
+  { title: 'CS fundamentals', items: ['Data Structures', 'Algorithms', 'OOP', 'CRUD', 'Validation'] },
+]

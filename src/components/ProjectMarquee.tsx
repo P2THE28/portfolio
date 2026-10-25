@@ -1,4 +1,4 @@
-import { ArrowUpRight, Landmark, GraduationCap, Sparkles } from 'lucide-react'
+import { ArrowUpRight, ExternalLink, Github, Landmark, GraduationCap, Sparkles } from 'lucide-react'
 
 const projects = [
   {
@@ -7,6 +7,8 @@ const projects = [
     description: 'AI-powered startup idea analysis and recommendations.',
     image: '/project-covers/vibranium.png',
     href: 'https://vibranium0-vibranium-ai-success-predictor.hf.space',
+    source: 'https://github.com/Vibranium00/AiSuccessPredictor',
+    technologies: ['Python', 'Flask', 'Gemini API', 'Firebase'],
     tone: 'violet',
   },
   {
@@ -14,6 +16,8 @@ const projects = [
     category: 'Bank management system',
     description: 'A Python banking application for account and transaction management.',
     href: 'https://p2pay-banking-portal.onrender.com/',
+    source: 'https://github.com/p2the28/P2Pay-Banking-Portal',
+    technologies: ['Python', 'OOP', 'File handling'],
     tone: 'cyan',
   },
   {
@@ -21,6 +25,8 @@ const projects = [
     category: 'Student record system',
     description: 'A menu-driven student record manager with CRUD operations.',
     href: 'https://student-management-system-abyw.onrender.com/',
+    source: 'https://github.com/p2the28/Student-Management-System',
+    technologies: ['Python', 'OOP', 'CRUD'],
     tone: 'amber',
   },
 ] as const
@@ -29,14 +35,7 @@ function ProjectCard({ project, duplicate = false }: { project: (typeof projects
   const ArtIcon = project.tone === 'cyan' ? Landmark : project.tone === 'amber' ? GraduationCap : Sparkles
 
   return (
-    <a
-      href={project.href}
-      target="_blank"
-      rel="noreferrer"
-      tabIndex={duplicate ? -1 : undefined}
-      aria-hidden={duplicate || undefined}
-      className="project-marquee-card group relative w-[min(78vw,350px)] shrink-0 rounded-[26px] border border-white/[0.08] bg-[#111116] p-2.5 transition-colors hover:border-cyan-400/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300"
-    >
+    <article aria-hidden={duplicate || undefined} className="project-marquee-card theme-card group relative w-[min(78vw,350px)] shrink-0 rounded-[26px] border p-2.5 transition-colors hover:border-cyan-400/40">
       <div className="relative aspect-[4/3] overflow-hidden rounded-[19px] bg-[#17171e]">
         {'image' in project ? (
           <img src={project.image} alt={`${project.title} project preview`} loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]" />
@@ -53,22 +52,27 @@ function ProjectCard({ project, duplicate = false }: { project: (typeof projects
         )}
         <span className="absolute left-4 top-4 rounded-full border border-white/15 bg-black/35 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-white/80 backdrop-blur">{project.category}</span>
       </div>
-      <div className="flex items-start justify-between gap-4 px-3 pb-3 pt-4">
-        <div className="min-w-0">
-          <h3 className="truncate text-lg font-semibold text-white">{project.title}</h3>
-          <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-gray-400">{project.description}</p>
+      <div className="px-3 pb-3 pt-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h3 className="truncate text-lg font-semibold text-white">{project.title}</h3>
+            <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-gray-400">{project.description}</p>
+          </div>
+          <ArrowUpRight size={17} className="mt-1 shrink-0 text-cyan-300" aria-hidden="true" />
         </div>
-        <span className="mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/10 text-gray-400 transition group-hover:border-cyan-300/40 group-hover:text-cyan-200">
-          <ArrowUpRight size={17} aria-hidden="true" />
-        </span>
+        <ul className="mt-3 flex flex-wrap gap-1.5">{project.technologies.map((technology) => <li key={technology} className="rounded-full border border-[var(--border-color)] px-2 py-1 text-[10px] text-gray-300">{technology}</li>)}</ul>
+        <div className="mt-4 flex gap-4 border-t border-[var(--border-color)] pt-3 text-xs">
+          <a href={project.source} target="_blank" rel="noreferrer" tabIndex={duplicate ? -1 : undefined} className="inline-flex items-center gap-1.5 text-gray-300 transition hover:text-cyan-300"><Github size={14} /> Repository</a>
+          <a href={project.href} target="_blank" rel="noreferrer" tabIndex={duplicate ? -1 : undefined} className="inline-flex items-center gap-1.5 text-gray-300 transition hover:text-cyan-300"><ExternalLink size={13} /> Live demo</a>
+        </div>
       </div>
-    </a>
+    </article>
   )
 }
 
 export function ProjectMarquee() {
   return (
-    <section id="projects" aria-labelledby="projects-heading" className="overflow-hidden border-t border-gray-900 py-16 sm:py-20">
+    <section id="projects" aria-labelledby="projects-heading" className="overflow-hidden border-t border-[var(--border-color)] py-16 sm:py-20">
       <div className="mx-auto mb-9 flex max-w-6xl flex-wrap items-end justify-between gap-4 px-5 sm:px-8">
         <div>
           <p className="mb-2 font-mono text-xs tracking-[0.18em] text-cyan-400">SELECTED WORK</p>
