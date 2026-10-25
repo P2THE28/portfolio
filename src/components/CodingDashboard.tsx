@@ -67,7 +67,7 @@ export function CodingDashboard() {
   const leetcodeConfigured = stats?.leetcode.status !== 'not_configured'
 
   return (
-    <section id="coding-stats" className="coding-dashboard border-y border-[var(--border-color)] bg-[var(--page-bg)] py-14 sm:py-20">
+    <section id="coding-stats" className="coding-dashboard border-y border-[var(--border-color)] py-14 sm:py-20">
       <div className="mx-auto max-w-6xl space-y-10 px-5 sm:px-8">
         <header className="flex flex-wrap items-end justify-between gap-5">
           <div>
@@ -184,8 +184,6 @@ function ActivityHeatmap({ title, platform, activity, unit, coverageStart, cover
   const columnStep = cellSize + cellGap
   const heatmapWidth = labelWidth + weeks.length * columnStep - cellGap
   const heatmapHeight = monthHeight + 7 * cellSize + 6 * cellGap
-  const greenLevels = ['#0e4429', '#006d32', '#26a641', '#39d353']
-
   return <section className={panelStyle}>
     <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2"><h3 className="flex items-center gap-2 text-sm font-medium text-gray-200"><PlatformIcon platform={platform} size={17} />{title}</h3><p className="text-[11px] text-gray-500">Last year</p></div>
     {loading ? <div className="h-28 animate-pulse rounded bg-gray-800/70" aria-label="Loading activity" /> : unavailable ? <p className="text-xs text-gray-500">Activity data unavailable.</p> : <>
@@ -198,7 +196,7 @@ function ActivityHeatmap({ title, platform, activity, unit, coverageStart, cover
         {weeks.flatMap((week, column) => week.map((day, row) => {
           const count = day.count
           const level = count === null || count === 0 ? -1 : count / maximum < 0.25 ? 0 : count / maximum < 0.5 ? 1 : count / maximum < 0.75 ? 2 : 3
-          const fill = count === null || level < 0 ? 'var(--heatmap-empty)' : greenLevels[level]
+          const fill = count === null || level < 0 ? 'var(--heatmap-empty)' : `var(--heatmap-level-${level + 1})`
           return <rect key={day.key} x={labelWidth + column * columnStep} y={monthHeight + row * columnStep} width={cellSize} height={cellSize} rx="2" fill={fill}>
             <title>{count === null ? `${day.key}: outside available history` : `${day.key}: ${count} ${unit}`}</title>
           </rect>

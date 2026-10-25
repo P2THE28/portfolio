@@ -4,6 +4,7 @@ import { ArrowDownToLine, ArrowRight, ChevronDown, Mail, Moon, Sun } from 'lucid
 import { CodingDashboard } from '@/components/CodingDashboard'
 import { ProjectMarquee } from '@/components/ProjectMarquee'
 import { PlatformIcon, type Platform } from '@/components/PlatformIcon'
+import { HexGlowBackground } from '@/components/HexGlowBackground'
 import { profileConfig, profileLinks } from '@/lib/profile-config'
 
 export const Route = createFileRoute('/')({ component: Home })
@@ -13,6 +14,10 @@ function Home() {
   const [aboutOpen, setAboutOpen] = useState(false)
 
   useEffect(() => {
+    if (window.location.hash === '#contact') {
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`)
+      window.scrollTo(0, 0)
+    }
     try {
       const savedTheme = window.localStorage.getItem('portfolio-theme')
       if (savedTheme === 'light' || savedTheme === 'dark') setTheme(savedTheme)
@@ -26,6 +31,7 @@ function Home() {
 
   return (
     <main className="portfolio-shell min-h-screen overflow-x-hidden">
+      <HexGlowBackground />
       <nav className="portfolio-nav sticky top-0 z-30 border-b backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-3.5 sm:px-8">
           <a href="#home" className="flex shrink-0 items-center gap-2.5 font-semibold tracking-tight text-white" aria-label="Priyanshu Kumar, home"><span className="font-mono text-xl text-cyan-400">&lt;/&gt;</span><span className="hidden sm:inline">Priyanshu Kumar</span><span className="sm:hidden">p2the28</span></a>
@@ -35,7 +41,7 @@ function Home() {
             <a href="#skills" className="transition hover:text-cyan-300">Skills</a>
             <a href="#projects" className="transition hover:text-cyan-300">Projects</a>
             <a href="#coding-stats" className="whitespace-nowrap transition hover:text-cyan-300">Coding Stats</a>
-            <a href="#contact" className="transition hover:text-cyan-300">Contact</a>
+            <a href="#contact" onClick={(event) => { event.preventDefault(); document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }) }} className="transition hover:text-cyan-300">Contact</a>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <button type="button" onClick={() => setTheme((value) => value === 'dark' ? 'light' : 'dark')} aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to midnight theme'} className="grid h-9 w-9 place-items-center rounded-lg text-violet-300 transition hover:bg-white/5 hover:text-cyan-300">{theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}</button>
@@ -44,7 +50,7 @@ function Home() {
         </div>
       </nav>
 
-      <section id="home" className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 sm:px-8 sm:py-20 lg:min-h-[620px] lg:grid-cols-[1.15fr_.85fr]">
+      <section id="home" className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 sm:px-8 sm:py-20 lg:min-h-[620px] lg:grid-cols-[1.15fr_.85fr] lg:py-10">
         <div id="about" className="relative z-10 w-full text-left">
           <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/[0.06] px-3 py-1.5 font-mono text-[11px] tracking-[0.12em] text-cyan-200">COMPUTER SCIENCE · NIT ROURKELA</p>
           <h1 className="max-w-[14ch] text-4xl font-bold leading-[1.08] tracking-tight text-white sm:max-w-none sm:text-6xl">{profileConfig.name}</h1>
@@ -52,7 +58,7 @@ function Home() {
           <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-400 sm:text-base">I’m a CSE student at NIT Rourkela who enjoys solving challenging problems, building meaningful software, and exploring new technologies. Currently focused on C++, Data Structures and Algorithms, competitive programming, and full-stack development.</p>
           <div className="mt-7 flex flex-wrap gap-3">
             <a href="#projects" className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300">View my projects <ArrowRight size={16} /></a>
-            <a href="#contact" className="inline-flex items-center gap-2 rounded-xl border border-violet-300/50 px-5 py-3 text-sm font-medium text-gray-200 transition hover:bg-violet-300/10">Contact me <ArrowRight size={15} /></a>
+            <a href="#contact" onClick={(event) => { event.preventDefault(); document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }) }} className="inline-flex items-center gap-2 rounded-xl border border-violet-300/50 px-5 py-3 text-sm font-medium text-gray-200 transition hover:bg-violet-300/10">Contact me <ArrowRight size={15} /></a>
           </div>
           <div className="mt-7 flex flex-wrap items-center gap-2.5" aria-label="Social profiles">
             {Object.entries(profileLinks).filter(([name]) => ['github', 'codeforces', 'leetcode'].includes(name)).map(([name, url]) => <a key={name} href={url} target="_blank" rel="noreferrer" aria-label={`Open ${name} profile`} title={name} className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--card-bg)] text-gray-300 transition hover:-translate-y-0.5 hover:border-cyan-400/60 hover:text-cyan-300"><PlatformIcon platform={name as Platform} size={18} /></a>)}
@@ -61,7 +67,7 @@ function Home() {
         <div className="relative mx-auto w-full max-w-md pt-3">
           <div className="absolute -inset-3 rounded-[32px] border border-cyan-300/10" />
           <div className="theme-card relative z-10 overflow-hidden rounded-[28px] border border-[var(--border-color)] bg-[var(--card-bg)] p-2.5 shadow-2xl shadow-cyan-950/20">
-            <img src="/profile-photo.jpg" alt="Priyanshu Kumar" className="aspect-[4/4.25] w-full rounded-[21px] object-cover object-center" />
+            <img src="/profile-photo.jpg" alt="Priyanshu Kumar" className="aspect-square w-full rounded-[21px] object-cover object-[center_38%]" />
             <div className="flex items-center justify-between gap-4 px-3 py-3.5"><div><p className="text-sm font-semibold text-white">Priyanshu Kumar</p><p className="mt-0.5 text-xs text-gray-400">NIT Rourkela · CSE</p></div><span className="inline-flex items-center gap-2 rounded-full border border-cyan-300/15 bg-cyan-300/[0.06] px-3 py-1.5 text-[11px] text-cyan-200"><span className="h-1.5 w-1.5 rounded-full bg-cyan-300" /> Building & learning</span></div>
           </div>
           <section aria-labelledby="about-me-heading" className="theme-card relative z-0 -mt-3 rounded-[24px] border border-[var(--border-color)] bg-[var(--card-bg)] px-5 pb-5 pt-6 shadow-xl shadow-violet-950/10">
@@ -97,7 +103,7 @@ function Home() {
 
       <ProjectMarquee />
 
-      <footer id="contact" className="border-t border-[var(--border-color)] py-10">
+      <footer id="contact" className="scroll-mt-24 border-t border-[var(--border-color)] py-10">
         <div className="mx-auto grid max-w-6xl gap-8 px-5 sm:px-8 md:grid-cols-[1fr_auto] md:items-end">
           <div>
             <p className="mb-2 font-mono text-xs tracking-[0.18em] text-violet-300">LET’S CONNECT</p>
