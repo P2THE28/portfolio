@@ -69,9 +69,9 @@ function Home() {
       <section id="home" className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 sm:px-8 sm:py-20 lg:min-h-[620px] lg:grid-cols-[1.15fr_.85fr] lg:py-10">
         <div id="about" className="relative z-10 w-full text-left">
           <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/[0.06] px-3 py-1.5 font-mono text-[11px] tracking-[0.12em] text-cyan-200">COMPUTER SCIENCE · NIT ROURKELA</p>
-          <h1 className="max-w-full text-4xl font-bold leading-[1.08] tracking-tight text-[var(--text-primary)] sm:text-6xl">
-            <span className="flex flex-wrap items-center gap-x-[0.16em]">
-              <span>Hi, I’m</span>
+          <h1 className="max-w-full text-3xl font-bold leading-[1.12] tracking-tight text-[var(--text-primary)] sm:text-5xl">
+            <span className="block">Hi, I’m</span>
+            <span className="flex w-fit items-center gap-x-[0.08em] whitespace-nowrap">
               <TechText
                 text="Priyanshu"
                 fontSize={150}
@@ -86,10 +86,8 @@ function Home() {
                 draggable={false}
                 sweep={false}
                 clickKick={false}
-                className="h-[1.15em] w-[5.25em] shrink-0"
+                className="h-[1.15em] w-[5.4em] shrink-0"
               />
-            </span>
-            <span className="block">
               <TechText
                 text="Kumar"
                 fontSize={150}
@@ -104,7 +102,7 @@ function Home() {
                 draggable={false}
                 sweep={false}
                 clickKick={false}
-                className="h-[1.15em] w-[3.4em]"
+                className="h-[1.15em] w-[3.6em] shrink-0"
               />
             </span>
           </h1>
