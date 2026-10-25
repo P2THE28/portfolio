@@ -984,7 +984,7 @@ const TechText = ({
   return (
     <span
       ref={containerRef}
-      className={`relative inline-block w-full h-full touch-pan-y select-none ${className}`.trim()}
+      className={`relative inline-block align-middle touch-pan-y select-none ${className}`.trim()}
       style={style}
       role="img"
       aria-label={text}
