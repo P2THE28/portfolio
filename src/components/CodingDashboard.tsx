@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useState } from 'react'
 import { ExternalLink, RefreshCw } from 'lucide-react'
+import { PlatformIcon, type Platform } from '@/components/PlatformIcon'
 import { profileConfig, profileLinks } from '@/lib/profile-config'
 import type { CodeforcesData, GitHubData, ProviderResult } from '@/lib/live-stats'
 import type { LeetCodeResult } from '@/lib/leetcode-provider.mjs'
@@ -113,7 +114,7 @@ export function CodingDashboard() {
             <RatingChart values={codeforces?.ratingHistory ?? []} loading={loading} unavailable={providerError('codeforces')} />
             <section className={panelStyle}><h3 className="mb-4 text-sm font-medium text-gray-200">Solved problems by rating</h3><BarList values={(codeforces?.solvedByRating ?? []).map((item) => ({ name: `${item.rating} rating`, count: item.count }))} loading={loading} unavailable={providerError('codeforces')} /></section>
           </div>
-          <SubmissionList title="Recent accepted problems" loading={loading} unavailable={providerError('codeforces')} items={(codeforces?.recentAccepted ?? []).map((item) => ({ name: item.name, detail: item.rating ? `Rating ${item.rating}` : 'Accepted', date: item.date, url: item.url }))} />
+          <ActivityHeatmap title="Codeforces submission activity" activity={codeforces?.activity ?? []} color="green" loading={loading} unavailable={providerError('codeforces')} />
         </section>
 
         <section aria-labelledby="leetcode-heading" className="space-y-5 border-t border-gray-900 pt-10">
@@ -131,9 +132,8 @@ export function CodingDashboard() {
             </div>
             <div className="grid gap-4 lg:grid-cols-2">
               <section className={panelStyle}><h3 className="mb-4 text-sm font-medium text-gray-200">Solved by difficulty</h3><BarList values={leetcode ? [{ name: 'Easy', count: leetcode.easy }, { name: 'Medium', count: leetcode.medium }, { name: 'Hard', count: leetcode.hard }] : []} loading={loading} unavailable={!leetcode} /></section>
-              <SubmissionList title="Recent accepted problems" loading={loading} unavailable={!leetcode} items={(leetcode?.recentAccepted ?? []).map((item) => ({ name: item.name, detail: item.difficulty || 'Accepted', date: item.date, url: item.url }))} />
             </div>
-            {leetcode?.activity.length ? <ActivityStrip activity={leetcode.activity} /> : null}
+            <ActivityHeatmap title="LeetCode submission activity" activity={leetcode?.activity ?? []} color="cyan" loading={loading} unavailable={!leetcode} />
           </>}
         </section>
 
@@ -149,7 +149,8 @@ function leetcodeRating(result: LeetCodeResult | undefined) {
 }
 
 function PlatformHeading({ id, name, subtitle, href }: { id: string; name: string; subtitle: string; href: string }) {
-  return <header className="flex flex-wrap items-baseline justify-between gap-2"><div><h3 id={id} className="text-xl font-semibold tracking-tight text-white">{name}</h3><p className="mt-1 text-xs text-gray-500">{subtitle}</p></div><a href={href} target="_blank" rel="noreferrer" className="text-xs text-gray-500 hover:text-cyan-300">Profile ↗</a></header>
+  const platform = name.toLowerCase() as Platform
+  return <header className="flex flex-wrap items-baseline justify-between gap-2"><div><h3 id={id} className="flex items-center gap-2 text-xl font-semibold tracking-tight text-white"><PlatformIcon platform={platform} size={20} />{name}</h3><p className="mt-1 text-xs text-gray-500">{subtitle}</p></div><a href={href} target="_blank" rel="noreferrer" aria-label={`Open ${name} profile`} className="text-gray-500 hover:text-cyan-300"><PlatformIcon platform={platform} size={18} /></a></header>
 }
 
 function SkeletonList() {
@@ -160,12 +161,54 @@ function EmptyMessage({ unavailable, provider }: { unavailable: boolean; provide
   return <p className="text-xs text-gray-500">{unavailable ? `${provider} data is unavailable right now.` : 'No public items found.'}</p>
 }
 
-function SubmissionList({ title, loading, unavailable, items }: { title: string; loading: boolean; unavailable: boolean; items: Array<{ name: string; detail: string; date: number; url: string }> }) {
-  return <section className={panelStyle}><h3 className="mb-3 text-sm font-medium text-gray-200">{title}</h3>{loading ? <SkeletonList /> : unavailable ? <EmptyMessage unavailable provider="Submission" /> : items.length ? <div className="divide-y divide-gray-800/80">{items.slice(0, 5).map((item) => <a key={`${item.url}-${item.date}`} href={item.url} target="_blank" rel="noreferrer" className="flex items-center justify-between gap-4 py-2.5 text-xs"><span className="truncate text-gray-300">{item.name}</span><span className="shrink-0 text-gray-500">{item.detail}</span></a>)}</div> : <p className="text-xs text-gray-500">No recent accepted problems available.</p>}</section>
-}
+function ActivityHeatmap({ title, activity, color, loading, unavailable }: { title: string; activity: Array<{ date: string; count: number }>; color: 'green' | 'cyan'; loading: boolean; unavailable: boolean }) {
+  const today = new Date()
+  today.setUTCHours(0, 0, 0, 0)
+  const firstDay = new Date(today)
+  firstDay.setUTCDate(firstDay.getUTCDate() - 363)
+  firstDay.setUTCDate(firstDay.getUTCDate() - firstDay.getUTCDay())
+  const activityByDate = new Map(activity.map((item) => [item.date, item.count]))
+  const days = Array.from({ length: 53 * 7 }, (_, index) => {
+    const date = new Date(firstDay)
+    date.setUTCDate(firstDay.getUTCDate() + index)
+    const key = date.toISOString().slice(0, 10)
+    return { key, date, count: date <= today ? activityByDate.get(key) ?? 0 : 0 }
+  })
+  const maximum = Math.max(1, ...days.map((day) => day.count))
+  const yearTotal = days.reduce((total, day) => total + day.count, 0)
+  const activeDays = days.filter((day) => day.count > 0).length
+  const weeks = Array.from({ length: 53 }, (_, week) => days.slice(week * 7, week * 7 + 7))
+  const dayLabels = ['', 'Mon', '', 'Wed', '', 'Fri', '']
+  const colorClass = color === 'green'
+    ? ['bg-green-950', 'bg-green-900', 'bg-green-700', 'bg-green-500']
+    : ['bg-cyan-950', 'bg-cyan-900', 'bg-cyan-700', 'bg-cyan-500']
 
-function ActivityStrip({ activity }: { activity: Array<{ date: string; count: number }> }) {
-  const recent = [...activity].sort((a, b) => a.date.localeCompare(b.date)).slice(-28)
-  const maximum = Math.max(1, ...recent.map((item) => item.count))
-  return <section className={panelStyle}><h3 className="mb-3 text-sm font-medium text-gray-200">LeetCode submission activity</h3><div className="flex flex-wrap gap-1" aria-label="Recent submission activity">{recent.map((item) => <span key={item.date} title={`${item.date}: ${item.count} submissions`} className="h-3 w-3 rounded-[3px] bg-cyan-400" style={{ opacity: 0.15 + 0.85 * item.count / maximum }} />)}</div></section>
+  return <section className={panelStyle}>
+    <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2"><h3 className="text-sm font-medium text-gray-200">{title}</h3><p className="text-[11px] text-gray-500">Last year</p></div>
+    {loading ? <div className="h-28 animate-pulse rounded bg-gray-800/70" aria-label="Loading activity" /> : unavailable ? <p className="text-xs text-gray-500">Activity data unavailable.</p> : <>
+      <div className="overflow-x-auto pb-2">
+        <div className="min-w-[640px]">
+          <div className="mb-1 grid grid-cols-[24px_repeat(53,minmax(0,1fr))] gap-[3px] text-[10px] text-gray-500">
+            <span />
+            {weeks.map((week, index) => {
+              const firstOfMonth = week.find((day) => day.date.getUTCDate() === 1)
+              return <span key={index} className="h-4 whitespace-nowrap">{firstOfMonth?.date.toLocaleString('en', { month: 'short', timeZone: 'UTC' })}</span>
+            })}
+          </div>
+          <div className="grid grid-cols-[24px_repeat(53,minmax(0,1fr))] gap-x-[3px] gap-y-[3px]">
+            {dayLabels.map((label, row) => <Fragment key={row}>
+              <span className="flex h-[11px] items-center text-[9px] leading-none text-gray-600">{label}</span>
+              {weeks.map((week, column) => {
+                const day = week[row]
+                const level = day.count === 0 ? -1 : day.count / maximum < 0.25 ? 0 : day.count / maximum < 0.5 ? 1 : day.count / maximum < 0.75 ? 2 : 3
+                const shade = level < 0 ? 'bg-gray-800/80' : colorClass[level]
+                return <span key={`${column}-${day.key}`} title={`${day.key}: ${day.count} submissions`} aria-label={`${day.key}: ${day.count} submissions`} className={`h-[11px] rounded-[2px] ${shade}`} />
+              })}
+            </Fragment>)}
+          </div>
+        </div>
+      </div>
+      <p className="mt-2 text-[11px] tabular-nums text-gray-500">{formatter.format(yearTotal)} submissions · {formatter.format(activeDays)} active days</p>
+    </>}
+  </section>
 }
