@@ -248,7 +248,9 @@ const TechText = ({
       m = probe.measureText(s.text);
       const inkWidth = m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
       const inkHeight = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
-      const margin = width * 0.05;
+      // Left-aligned text must begin at the container edge so it lines up
+      // with neighboring HTML headings; retain inset spacing for centered/right.
+      const margin = s.align === 'left' ? 0 : width * 0.05;
       const start =
         s.align === 'left' ? margin : s.align === 'right' ? width - margin - inkWidth : (width - inkWidth) / 2;
       const x = start + m.actualBoundingBoxLeft;
