@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
-import { ArrowDownToLine, ArrowRight, Mail, Moon, Sun } from 'lucide-react'
+import { ArrowDownToLine, ArrowRight, ChevronDown, Mail, Moon, Sun } from 'lucide-react'
 import { CodingDashboard } from '@/components/CodingDashboard'
 import { ProjectMarquee } from '@/components/ProjectMarquee'
 import { PlatformIcon, type Platform } from '@/components/PlatformIcon'
@@ -10,6 +10,7 @@ export const Route = createFileRoute('/')({ component: Home })
 
 function Home() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+  const [aboutOpen, setAboutOpen] = useState(false)
 
   useEffect(() => {
     try {
@@ -51,28 +52,35 @@ function Home() {
           <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-400 sm:text-base">I’m a CSE student at NIT Rourkela who enjoys solving challenging problems, building meaningful software, and exploring new technologies. Currently focused on C++, Data Structures and Algorithms, competitive programming, and full-stack development.</p>
           <div className="mt-7 flex flex-wrap gap-3">
             <a href="#projects" className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300">View my projects <ArrowRight size={16} /></a>
-            <a href={`mailto:${profileConfig.email}`} className="inline-flex items-center gap-2 rounded-xl border border-violet-300/50 px-5 py-3 text-sm font-medium text-gray-200 transition hover:bg-violet-300/10"><Mail size={15} /> Contact me</a>
+            <a href="#contact" className="inline-flex items-center gap-2 rounded-xl border border-violet-300/50 px-5 py-3 text-sm font-medium text-gray-200 transition hover:bg-violet-300/10">Contact me <ArrowRight size={15} /></a>
           </div>
           <div className="mt-7 flex flex-wrap items-center gap-2.5" aria-label="Social profiles">
-            {Object.entries(profileLinks).map(([name, url]) => <a key={name} href={url} target="_blank" rel="noreferrer" aria-label={`Open ${name} profile`} title={name} className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--card-bg)] text-gray-300 transition hover:-translate-y-0.5 hover:border-cyan-400/60 hover:text-cyan-300"><PlatformIcon platform={name as Platform} size={18} /></a>)}
+            {Object.entries(profileLinks).filter(([name]) => ['github', 'codeforces', 'leetcode'].includes(name)).map(([name, url]) => <a key={name} href={url} target="_blank" rel="noreferrer" aria-label={`Open ${name} profile`} title={name} className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--card-bg)] text-gray-300 transition hover:-translate-y-0.5 hover:border-cyan-400/60 hover:text-cyan-300"><PlatformIcon platform={name as Platform} size={18} /></a>)}
           </div>
         </div>
-        <div className="relative mx-auto w-full max-w-md">
+        <div className="relative mx-auto w-full max-w-md pt-3">
           <div className="absolute -inset-3 rounded-[32px] border border-cyan-300/10" />
-          <div className="theme-card relative overflow-hidden rounded-[28px] border border-[var(--border-color)] bg-[var(--card-bg)] p-2.5 shadow-2xl shadow-cyan-950/20">
+          <div className="theme-card relative z-10 overflow-hidden rounded-[28px] border border-[var(--border-color)] bg-[var(--card-bg)] p-2.5 shadow-2xl shadow-cyan-950/20">
             <img src="/profile-photo.jpg" alt="Priyanshu Kumar" className="aspect-[4/4.25] w-full rounded-[21px] object-cover object-center" />
             <div className="flex items-center justify-between gap-4 px-3 py-3.5"><div><p className="text-sm font-semibold text-white">Priyanshu Kumar</p><p className="mt-0.5 text-xs text-gray-400">NIT Rourkela · CSE</p></div><span className="inline-flex items-center gap-2 rounded-full border border-cyan-300/15 bg-cyan-300/[0.06] px-3 py-1.5 text-[11px] text-cyan-200"><span className="h-1.5 w-1.5 rounded-full bg-cyan-300" /> Building & learning</span></div>
-            <section aria-labelledby="about-me-heading" className="border-t border-[var(--border-color)] px-3 pb-4 pt-4 sm:px-4">
+          </div>
+          <section aria-labelledby="about-me-heading" className="theme-card relative z-0 -mt-3 rounded-[24px] border border-[var(--border-color)] bg-[var(--card-bg)] px-5 pb-5 pt-6 shadow-xl shadow-violet-950/10">
+            <button type="button" aria-expanded={aboutOpen} aria-controls="about-me-content" onClick={() => setAboutOpen((open) => !open)} className="flex w-full items-center justify-between gap-4 text-left">
+              <span>
               <p className="mb-1.5 font-mono text-[10px] tracking-[0.18em] text-violet-300">A LITTLE ABOUT ME</p>
               <h2 id="about-me-heading" className="text-xl font-semibold tracking-tight text-white">About Me</h2>
+              </span>
+              <ChevronDown size={18} className={`shrink-0 text-violet-300 transition-transform duration-200 ${aboutOpen ? 'rotate-180' : ''}`} />
+            </button>
+            <div id="about-me-content" hidden={!aboutOpen} className="mt-3 border-t border-[var(--border-color)] pt-4">
               <div className="mt-3 space-y-3 text-sm leading-6 text-gray-400">
                 <p>I’m a Computer Science and Engineering student at NIT Rourkela with a strong interest in problem-solving, software engineering, and emerging technologies.</p>
                 <p>I enjoy solving Data Structures and Algorithms problems using C++, participating in competitive programming, and building practical projects that turn ideas into working solutions. I’m continuously strengthening my understanding of algorithms, backend development, and modern web technologies while exploring the possibilities of AI and machine learning.</p>
                 <p>Beyond coding, I enjoy photography and creative work, which help me approach problems from different perspectives. I believe in learning by building, improving through consistency, and writing software that is useful, reliable, and well-engineered.</p>
               </div>
               <p className="mt-4 rounded-xl border border-violet-300/15 bg-violet-300/[0.04] px-3 py-2.5 text-xs leading-5 text-gray-300"><span className="font-semibold text-violet-300">Currently focused on:</span> Competitive Programming, Full-Stack Development, and AI/ML.</p>
-            </section>
-          </div>
+            </div>
+          </section>
         </div>
       </section>
 
@@ -89,8 +97,19 @@ function Home() {
 
       <ProjectMarquee />
 
-      <footer id="contact" className="border-t border-[var(--border-color)] py-8">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-5 px-5 text-center sm:flex-row sm:px-8 sm:text-left"><div><a href="#home" className="font-mono font-bold text-cyan-300">&lt;/&gt; Priyanshu Kumar</a><p className="mt-1 text-xs text-gray-500">Building, learning, and growing every day.</p></div><div className="flex items-center gap-5 text-xs text-gray-400"><a href="#home" className="hover:text-cyan-300">Home</a><a href="#projects" className="hover:text-cyan-300">Projects</a><a href="#coding-stats" className="hover:text-cyan-300">Coding Stats</a></div><a href={`mailto:${profileConfig.email}`} className="text-sm text-cyan-300 hover:text-cyan-200">{profileConfig.email}</a></div>
+      <footer id="contact" className="border-t border-[var(--border-color)] py-10">
+        <div className="mx-auto grid max-w-6xl gap-8 px-5 sm:px-8 md:grid-cols-[1fr_auto] md:items-end">
+          <div>
+            <p className="mb-2 font-mono text-xs tracking-[0.18em] text-violet-300">LET’S CONNECT</p>
+            <h2 className="text-2xl font-semibold tracking-tight text-white">Contact me</h2>
+            <a href={`mailto:${profileConfig.email}`} aria-label="Email Priyanshu" title="Email Priyanshu" className="mt-3 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--card-bg)] text-cyan-300 transition hover:border-cyan-400/60 hover:text-cyan-200"><Mail size={18} /></a>
+            <div className="mt-4 flex items-center gap-2.5" aria-label="Social profiles">
+              {(['linkedin', 'instagram', 'x'] as const).map((name) => <a key={name} href={profileLinks[name]} target="_blank" rel="noreferrer" aria-label={`Open ${name} profile`} title={name} className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--card-bg)] text-gray-300 transition hover:-translate-y-0.5 hover:border-cyan-400/60 hover:text-cyan-300"><PlatformIcon platform={name} size={18} /></a>)}
+            </div>
+          </div>
+          <nav aria-label="Footer navigation" className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-gray-400"><a href="#home" className="hover:text-cyan-300">Home</a><a href="#projects" className="hover:text-cyan-300">Projects</a><a href="#coding-stats" className="hover:text-cyan-300">Coding Stats</a></nav>
+        </div>
+        <p className="mt-9 text-center text-xs text-gray-500">Made with <span role="img" aria-label="love">❤️</span></p>
       </footer>
     </main>
   )

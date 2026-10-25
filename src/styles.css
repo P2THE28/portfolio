@@ -7,6 +7,7 @@
 :root {
   --page-bg: #0b1020;
   --card-bg: rgb(21 29 51 / 1%);
+  --heatmap-empty: #202b42;
   --border-color: rgb(148 163 184 / 15%);
   --text-primary: #f1f5f9;
   --text-muted: #94a3b8;
@@ -16,6 +17,7 @@
 html[data-theme='light'] {
   --page-bg: #f7f8fc;
   --card-bg: rgb(255 255 255 / 1%);
+  --heatmap-empty: #fff;
   --border-color: rgb(71 85 105 / 16%);
   --text-primary: #0f172a;
   --text-muted: #475569;
@@ -62,6 +64,12 @@ body {
 .theme-card:focus-within {
   border-color: rgb(167 139 250 / 42%);
   box-shadow: 0 0 22px rgb(139 92 246 / 12%), inset 0 0 18px rgb(139 92 246 / 3%);
+}
+
+.coding-dashboard .theme-card:hover,
+.coding-dashboard .theme-card:focus-within {
+  transform: none;
+  scale: 1;
 }
 
 html[data-theme='light'] .portfolio-shell .text-white { color: #0f172a !important; }
@@ -128,10 +136,6 @@ code {
   background: #f97316;
   content: '';
   transform: translate(50%, -50%);
-}
-
-.project-marquee-card:last-child::after {
-  display: none;
 }
 
 .project-marquee::before {

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import { ExternalLink, RefreshCw } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { RefreshCw } from 'lucide-react'
 import { PlatformIcon, type Platform } from '@/components/PlatformIcon'
 import { profileLinks } from '@/lib/profile-config'
 import type { CodeforcesData, GitHubData, ProviderResult } from '@/lib/live-stats'
@@ -15,7 +15,7 @@ const panelStyle = 'theme-card rounded-2xl border border-[var(--border-color)] b
 
 function StatCard({ label, value, sublabel, href, loading, unavailable }: { label: string; value: string | number | null; sublabel?: string; href?: string; loading: boolean; unavailable?: boolean }) {
   const content = loading ? <div className="mt-2 h-7 w-20 animate-pulse rounded bg-gray-800" /> : unavailable || value === null ? <p className="mt-2 text-xs text-gray-500">Unavailable</p> : <><p className="mt-1 text-2xl font-medium tabular-nums text-white">{value}</p>{sublabel && <p className="mt-0.5 text-xs text-gray-500">{sublabel}</p>}</>
-  return <div className={panelStyle}>{href ? <a href={href} target="_blank" rel="noreferrer" className={`${labelStyle} inline-flex items-center gap-2 hover:text-cyan-300`}>{label}<ExternalLink size={12} /></a> : <p className={labelStyle}>{label}</p>}{content}</div>
+  return <div className={panelStyle}>{href ? <a href={href} target="_blank" rel="noreferrer" className={`${labelStyle} transition hover:text-cyan-300`}>{label}</a> : <p className={labelStyle}>{label}</p>}{content}</div>
 }
 
 function BarList({ values, loading, unavailable }: { values: Array<{ name: string; count: number }>; loading: boolean; unavailable: boolean }) {
@@ -24,12 +24,17 @@ function BarList({ values, loading, unavailable }: { values: Array<{ name: strin
 }
 
 function RatingChart({ values, loading, unavailable }: { values: CodeforcesData['ratingHistory']; loading: boolean; unavailable: boolean }) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const container = scrollRef.current
+    if (container) container.scrollLeft = container.scrollWidth
+  }, [values, loading, unavailable])
   const width = 720, height = 220, pad = 24
   const min = Math.min(...values.map((item) => item.rating)), max = Math.max(...values.map((item) => item.rating))
   const points = values.map((item, index) => `${pad + index / Math.max(1, values.length - 1) * (width - pad * 2)},${height - pad - ((item.rating - min) / Math.max(1, max - min)) * (height - pad * 2)}`).join(' ')
   return <section className={panelStyle}>
-    <h3 className="font-semibold text-white">Codeforces rating history</h3>
-    {loading ? <div className="mt-5 h-48 animate-pulse rounded bg-gray-800" aria-label="Loading rating chart" /> : unavailable || values.length < 2 ? <p className="mt-4 text-sm text-gray-500">Rating history unavailable.</p> : <div className="mt-4 overflow-x-auto"><svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Codeforces rating by contest" className="h-56 min-w-[540px] w-full"><line x1={pad} x2={width - pad} y1={height - pad} y2={height - pad} stroke="#374151"/><line x1={pad} x2={pad} y1={pad} y2={height - pad} stroke="#374151"/><polyline fill="none" stroke="#22d3ee" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" points={points}/>{values.map((item, index) => {const x = pad + index / Math.max(1, values.length - 1) * (width - pad * 2); const y = height - pad - ((item.rating - min) / Math.max(1, max - min)) * (height - pad * 2); return <circle key={`${item.date}-${index}`} cx={x} cy={y} r="4" fill="#22d3ee"><title>{`${item.contest}: ${item.rating}`}</title></circle>})}</svg><div className="flex justify-between text-xs text-gray-500"><span>{values[0]?.contest}</span><span>{values.at(-1)?.contest}</span></div></div>}
+    <h3 className="flex items-center gap-2 font-semibold text-white"><PlatformIcon platform="codeforces" size={18} />Codeforces rating history</h3>
+    {loading ? <div className="mt-5 h-48 animate-pulse rounded bg-gray-800" aria-label="Loading rating chart" /> : unavailable || values.length < 2 ? <p className="mt-4 text-sm text-gray-500">Rating history unavailable.</p> : <div ref={scrollRef} className="mt-4 overflow-x-auto"><svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Codeforces rating by contest" className="h-56 min-w-[540px] w-full"><line x1={pad} x2={width - pad} y1={height - pad} y2={height - pad} stroke="#374151"/><line x1={pad} x2={pad} y1={pad} y2={height - pad} stroke="#374151"/><polyline fill="none" stroke="#22d3ee" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" points={points}/>{values.map((item, index) => {const x = pad + index / Math.max(1, values.length - 1) * (width - pad * 2); const y = height - pad - ((item.rating - min) / Math.max(1, max - min)) * (height - pad * 2); return <circle key={`${item.date}-${index}`} cx={x} cy={y} r="4" fill="#22d3ee"><title>{`${item.contest}: ${item.rating}`}</title></circle>})}</svg><div className="flex justify-between text-xs text-gray-500"><span>{values[0]?.contest}</span><span>{values.at(-1)?.contest}</span></div></div>}
   </section>
 }
 
@@ -121,13 +126,13 @@ export function CodingDashboard() {
           </div>
           <div className="grid gap-4 xl:grid-cols-3">
             <RatingChart values={codeforces?.ratingHistory ?? []} loading={loading} unavailable={providerError('codeforces')} />
-            <section className={panelStyle}><h3 className="mb-4 text-sm font-medium text-gray-200">Codeforces solved by rating</h3><BarList values={(codeforces?.solvedByRating ?? []).map((item) => ({ name: `${item.rating} rating`, count: item.count }))} loading={loading} unavailable={providerError('codeforces')} /></section>
-            <section className={panelStyle}><h3 className="mb-4 text-sm font-medium text-gray-200">LeetCode by difficulty</h3><BarList values={leetcode ? [{ name: 'Easy', count: leetcode.easy }, { name: 'Medium', count: leetcode.medium }, { name: 'Hard', count: leetcode.hard }] : []} loading={loading} unavailable={!leetcode} /></section>
+            <section className={panelStyle}><h3 className="mb-4 flex items-center gap-2 text-sm font-medium text-gray-200"><PlatformIcon platform="codeforces" size={17} />Codeforces solved by rating</h3><BarList values={(codeforces?.solvedByRating ?? []).map((item) => ({ name: `${item.rating} rating`, count: item.count }))} loading={loading} unavailable={providerError('codeforces')} /></section>
+            <section className={panelStyle}><h3 className="mb-4 flex items-center gap-2 text-sm font-medium text-gray-200"><PlatformIcon platform="leetcode" size={17} />LeetCode by difficulty</h3><BarList values={leetcode ? [{ name: 'Easy', count: leetcode.easy }, { name: 'Medium', count: leetcode.medium }, { name: 'Hard', count: leetcode.hard }] : []} loading={loading} unavailable={!leetcode} /></section>
           </div>
           <div className="grid gap-4 lg:grid-cols-3">
-            <ActivityHeatmap title="GitHub contributions" activity={github?.activity ?? []} unit="contributions" coverageStart={github?.activity?.[0]?.date} coverageEnd={github?.activity?.at(-1)?.date} loading={loading} unavailable={!github?.activity} />
-            <ActivityHeatmap title="Codeforces activity" activity={codeforces?.activity ?? []} unit="submissions" loading={loading} unavailable={providerError('codeforces')} />
-            {stats?.leetcode.status !== 'not_configured' && <ActivityHeatmap title="LeetCode activity" activity={leetcode?.activity ?? []} unit="submissions" loading={loading} unavailable={!leetcode} />}
+            <ActivityHeatmap title="GitHub contributions" platform="github" activity={github?.activity ?? []} unit="contributions" coverageStart={github?.activity?.[0]?.date} coverageEnd={github?.activity?.at(-1)?.date} loading={loading} unavailable={!github?.activity} />
+            <ActivityHeatmap title="Codeforces activity" platform="codeforces" activity={codeforces?.activity ?? []} unit="submissions" loading={loading} unavailable={providerError('codeforces')} />
+            {stats?.leetcode.status !== 'not_configured' && <ActivityHeatmap title="LeetCode activity" platform="leetcode" activity={leetcode?.activity ?? []} unit="submissions" loading={loading} unavailable={!leetcode} />}
           </div>
         </section>
 
@@ -151,7 +156,12 @@ function EmptyMessage({ unavailable, provider }: { unavailable: boolean; provide
   return <p className="text-xs text-gray-500">{unavailable ? `${provider} data is unavailable right now.` : 'No public items found.'}</p>
 }
 
-function ActivityHeatmap({ title, activity, unit, coverageStart, coverageEnd, loading, unavailable }: { title: string; activity: Array<{ date: string; count: number }>; unit: 'contributions' | 'submissions'; coverageStart?: string; coverageEnd?: string; loading: boolean; unavailable: boolean }) {
+function ActivityHeatmap({ title, platform, activity, unit, coverageStart, coverageEnd, loading, unavailable }: { title: string; platform: Platform; activity: Array<{ date: string; count: number }>; unit: 'contributions' | 'submissions'; coverageStart?: string; coverageEnd?: string; loading: boolean; unavailable: boolean }) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const container = scrollRef.current
+    if (container) container.scrollLeft = container.scrollWidth
+  }, [activity, loading, unavailable])
   const today = new Date()
   today.setUTCHours(0, 0, 0, 0)
   const firstDay = new Date(today)
@@ -177,9 +187,9 @@ function ActivityHeatmap({ title, activity, unit, coverageStart, coverageEnd, lo
   const greenLevels = ['#0e4429', '#006d32', '#26a641', '#39d353']
 
   return <section className={panelStyle}>
-    <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2"><h3 className="text-sm font-medium text-gray-200">{title}</h3><p className="text-[11px] text-gray-500">Last year</p></div>
+    <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2"><h3 className="flex items-center gap-2 text-sm font-medium text-gray-200"><PlatformIcon platform={platform} size={17} />{title}</h3><p className="text-[11px] text-gray-500">Last year</p></div>
     {loading ? <div className="h-28 animate-pulse rounded bg-gray-800/70" aria-label="Loading activity" /> : unavailable ? <p className="text-xs text-gray-500">Activity data unavailable.</p> : <>
-      <div className="w-full overflow-x-auto pb-1">
+      <div ref={scrollRef} className="w-full overflow-x-auto pb-1">
       <svg viewBox={`0 0 ${heatmapWidth} ${heatmapHeight}`} role="img" aria-label={`${title}, last year`} className="block h-auto w-full min-w-[540px]" preserveAspectRatio="xMinYMin meet">
         {weeks.map((week, column) => {
           const firstOfMonth = week.find((day) => day.date.getUTCDate() === 1)
@@ -188,7 +198,7 @@ function ActivityHeatmap({ title, activity, unit, coverageStart, coverageEnd, lo
         {weeks.flatMap((week, column) => week.map((day, row) => {
           const count = day.count
           const level = count === null || count === 0 ? -1 : count / maximum < 0.25 ? 0 : count / maximum < 0.5 ? 1 : count / maximum < 0.75 ? 2 : 3
-          const fill = count === null ? 'transparent' : level < 0 ? '#202b42' : greenLevels[level]
+          const fill = count === null || level < 0 ? 'var(--heatmap-empty)' : greenLevels[level]
           return <rect key={day.key} x={labelWidth + column * columnStep} y={monthHeight + row * columnStep} width={cellSize} height={cellSize} rx="2" fill={fill}>
             <title>{count === null ? `${day.key}: outside available history` : `${day.key}: ${count} ${unit}`}</title>
           </rect>
