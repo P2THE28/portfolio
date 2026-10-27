@@ -3,8 +3,28 @@ import { useEffect, useRef } from 'react'
 type TrailPoint = { x: number; y: number; time: number }
 type Cell = { x: number; y: number }
 
-const TRAIL_LENGTH_MS = 3_000
-const FRAME_INTERVAL_MS = 1000 / 60
+// Violet preset values from the supplied background animation reference.
+const PRESET = {
+  cellSize: 1.9,
+  lineWidth: 0.5,
+  litWidth: 1.8,
+  glow: 1.5,
+  glowRadius: 0.5,
+  lattice: 0.4,
+  core: 0.4,
+  vignette: 0,
+  grain: 1,
+  trailLengthMs: 3_000,
+  trailWidth: 1,
+  follow: 0.5,
+  flow: 0.5,
+  shimmer: 1,
+  autoplay: true,
+  interactive: true,
+  clickPulses: true,
+  speed: 1,
+} as const
+const FRAME_INTERVAL_MS = 1000 / 30
 
 function rgba(hex: string, alpha: number) {
   const value = hex.replace('#', '')
@@ -25,6 +45,7 @@ export function HexGlowBackground() {
 
     const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)')
     const trail: TrailPoint[] = []
+    const pulses: TrailPoint[] = []
     let cells: Cell[] = []
     let radius = 64
     let tileHeight = radius * Math.sqrt(3)
@@ -37,6 +58,7 @@ export function HexGlowBackground() {
     let hot = '#ff9ffc'
     let lineAlpha = 0.22
     let noisePattern: CanvasPattern | null = null
+    let pointerPosition: { x: number; y: number } | null = null
 
     const buildNoise = () => {
       const texture = document.createElement('canvas')
@@ -60,7 +82,7 @@ export function HexGlowBackground() {
       const root = getComputedStyle(document.documentElement)
       cool = root.getPropertyValue('--hex-cool').trim() || '#5227ff'
       hot = root.getPropertyValue('--hex-hot').trim() || '#ff9ffc'
-      lineAlpha = Number.parseFloat(root.getPropertyValue('--hex-line-alpha')) || 0.22
+      lineAlpha = Number.parseFloat(root.getPropertyValue('--hex-line-alpha')) || PRESET.lattice * 0.5
     }
 
     const makeCells = () => {
@@ -80,7 +102,7 @@ export function HexGlowBackground() {
     const draw = (now: number, withGlow: boolean) => {
       context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0)
       context.clearRect(0, 0, width, height)
-      context.lineWidth = 0.55
+      context.lineWidth = PRESET.lineWidth
       context.strokeStyle = rgba(cool, lineAlpha)
       context.beginPath()
       for (const cell of cells) {
@@ -94,23 +116,46 @@ export function HexGlowBackground() {
       context.stroke()
 
       if (noisePattern) {
-        context.globalAlpha = 0.48
+        context.globalAlpha = 0.48 * PRESET.grain
         context.fillStyle = noisePattern
         context.fillRect(0, 0, width, height)
         context.globalAlpha = 1
       }
+      if (PRESET.vignette > 0) {
+        const vignette = context.createRadialGradient(width / 2, height / 2, height * 0.2, width / 2, height / 2, height * 0.8)
+        vignette.addColorStop(0, 'rgba(0, 0, 0, 0)')
+        vignette.addColorStop(1, `rgba(0, 0, 0, ${PRESET.vignette})`)
+        context.fillStyle = vignette
+        context.fillRect(0, 0, width, height)
+      }
 
-      if (!withGlow || trail.length === 0) return
+      if (!withGlow) return
 
       const samples: Array<TrailPoint & { strength: number }> = []
       for (let index = trail.length - 1; index >= 0; index -= 1) {
         const point = trail[index]
         const age = now - point.time
-        if (age > TRAIL_LENGTH_MS) break
-        samples.push({ ...point, strength: Math.pow(1 - age / TRAIL_LENGTH_MS, 1.35) })
+        if (age > PRESET.trailLengthMs) break
+        samples.push({
+          ...point,
+          strength: Math.pow(1 - age / PRESET.trailLengthMs, 1.35) * PRESET.flow * PRESET.trailWidth,
+        })
+      }
+      for (const pulse of pulses) {
+        const age = now - pulse.time
+        if (age <= 700) samples.push({ ...pulse, strength: (1 - age / 700) * 0.9 })
+      }
+      if (PRESET.autoplay && !motionPreference.matches) {
+        const phase = now / (22_000 / PRESET.speed)
+        samples.push({
+          x: width * (0.5 + 0.32 * Math.sin(phase)),
+          y: height * (0.5 + 0.22 * Math.cos(phase * 0.72)),
+          time: now,
+          strength: 0.12 + 0.06 * PRESET.shimmer * (0.5 + 0.5 * Math.sin(phase * 2.3)),
+        })
       }
 
-      const reachSquared = (radius * 1.65) ** 2
+      const reachSquared = (radius * (1 + PRESET.glowRadius)) ** 2
       for (const cell of cells) {
         for (let side = 0; side < 6; side += 1) {
           const angle = Math.PI / 3 * side
@@ -126,18 +171,19 @@ export function HexGlowBackground() {
           for (const sample of samples) {
             const distanceSquared = (midX - sample.x) ** 2 + (midY - sample.y) ** 2
             if (distanceSquared > reachSquared) continue
-            const falloff = Math.exp(-distanceSquared / (radius * radius * 0.62))
-            strength = Math.max(strength, falloff * sample.strength)
+            const falloff = Math.exp(-distanceSquared / (radius * radius * PRESET.glowRadius))
+            const coreBoost = 1 - PRESET.core + PRESET.core * falloff
+            strength = Math.max(strength, falloff * sample.strength * coreBoost)
           }
 
           if (strength < 0.035) continue
           context.beginPath()
           context.moveTo(x1, y1)
           context.lineTo(x2, y2)
-          context.strokeStyle = rgba(hot, Math.min(0.96, strength * 1.25))
-          context.lineWidth = 0.55 + strength * 1.2
+          context.strokeStyle = rgba(hot, Math.min(0.96, strength * PRESET.glow))
+          context.lineWidth = PRESET.lineWidth + strength * (PRESET.litWidth - PRESET.lineWidth)
           context.shadowColor = hot
-          context.shadowBlur = 13 * strength
+          context.shadowBlur = 13 * strength * PRESET.glow
           context.stroke()
         }
       }
@@ -150,9 +196,12 @@ export function HexGlowBackground() {
         return
       }
       lastFrame = now
-      while (trail.length && now - trail[0].time > TRAIL_LENGTH_MS) trail.shift()
+      while (trail.length && now - trail[0].time > PRESET.trailLengthMs) trail.shift()
+      while (pulses.length && now - pulses[0].time > 700) pulses.shift()
       draw(now, true)
-      if (trail.length) animationFrame = window.requestAnimationFrame(animate)
+      if ((PRESET.autoplay && !motionPreference.matches) || trail.length || pulses.length) {
+        animationFrame = window.requestAnimationFrame(animate)
+      }
       else animationFrame = 0
     }
 
@@ -162,12 +211,21 @@ export function HexGlowBackground() {
     }
 
     const handlePointer = (event: PointerEvent) => {
-      if (motionPreference.matches) return
+      if (motionPreference.matches || !PRESET.interactive) return
       const now = performance.now()
+      if (!pointerPosition) pointerPosition = { x: event.clientX, y: event.clientY }
+      pointerPosition.x += (event.clientX - pointerPosition.x) * PRESET.follow
+      pointerPosition.y += (event.clientY - pointerPosition.y) * PRESET.follow
       const previous = trail[trail.length - 1]
       if (!previous || now - previous.time > 10 || Math.hypot(event.clientX - previous.x, event.clientY - previous.y) > 3) {
-        trail.push({ x: event.clientX, y: event.clientY, time: now })
+        trail.push({ x: pointerPosition.x, y: pointerPosition.y, time: now })
       }
+      scheduleGlow()
+    }
+
+    const handleClickPulse = (event: PointerEvent) => {
+      if (motionPreference.matches || !PRESET.clickPulses) return
+      pulses.push({ x: event.clientX, y: event.clientY, time: performance.now() })
       scheduleGlow()
     }
 
@@ -177,7 +235,7 @@ export function HexGlowBackground() {
       pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5)
       canvas.width = Math.round(width * pixelRatio)
       canvas.height = Math.round(height * pixelRatio)
-      radius = Math.max(48, Math.min(78, width / 16))
+      radius = PRESET.cellSize * 40
       tileHeight = radius * Math.sqrt(3)
       readTheme()
       makeCells()
@@ -186,9 +244,12 @@ export function HexGlowBackground() {
 
     const handleMotionPreference = () => {
       trail.length = 0
+      pulses.length = 0
+      pointerPosition = null
       if (animationFrame) window.cancelAnimationFrame(animationFrame)
       animationFrame = 0
       draw(performance.now(), false)
+      if (!motionPreference.matches && PRESET.autoplay) scheduleGlow()
     }
 
     const themeObserver = new MutationObserver(() => {
@@ -200,12 +261,15 @@ export function HexGlowBackground() {
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
     window.addEventListener('resize', resize)
     window.addEventListener('pointermove', handlePointer, { passive: true })
+    window.addEventListener('pointerdown', handleClickPulse, { passive: true })
     motionPreference.addEventListener('change', handleMotionPreference)
+    if (!motionPreference.matches && PRESET.autoplay) scheduleGlow()
 
     return () => {
       themeObserver.disconnect()
       window.removeEventListener('resize', resize)
       window.removeEventListener('pointermove', handlePointer)
+      window.removeEventListener('pointerdown', handleClickPulse)
       motionPreference.removeEventListener('change', handleMotionPreference)
       if (animationFrame) window.cancelAnimationFrame(animationFrame)
     }
