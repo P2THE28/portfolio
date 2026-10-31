@@ -1,4 +1,5 @@
 import { profileConfig } from './profile-config'
+import { fetchGitHubContributions } from './github-contributions.mjs'
 import { getLeetCodeStats } from './leetcode-provider.mjs'
 import type { LeetCodeResult } from './leetcode-provider.mjs'
 import {
@@ -27,6 +28,7 @@ export type GitHubData = {
   repositories: Array<{ name: string; description: string | null; language: string | null; stars: number; forks: number; url: string; updatedAt: string }>
   languages: Array<{ name: string; count: number }>
   activity: Array<{ date: string; count: number }> | null
+  activityError?: string
   recentActivity: Array<{ type: string; repo: string; createdAt: string; url: string }>
 }
 
@@ -40,12 +42,12 @@ export type CodeforcesData = {
   recentAccepted: Array<{ name: string; contestId: number; index: string; date: number; url: string; rating: number | null }>
 }
 
-async function cached<T>(key: string, load: () => Promise<T>): Promise<T> {
+async function cached<T>(key: string, load: () => Promise<T>, ttlForValue?: (value: T) => number): Promise<T> {
   const hit = cache.get(key)
   if (hit && hit.expiresAt > Date.now()) return hit.value as T
   try {
     const value = await load()
-    cache.set(key, { value, expiresAt: Date.now() + CACHE_TTL })
+    cache.set(key, { value, expiresAt: Date.now() + (ttlForValue?.(value) ?? CACHE_TTL) })
     return value
   } catch (error) {
     if (hit) return hit.value as T
@@ -55,7 +57,13 @@ async function cached<T>(key: string, load: () => Promise<T>): Promise<T> {
 
 async function fetchJson<T>(url: string, headers: HeadersInit = {}): Promise<T> {
   const response = await fetch(url, { headers, signal: AbortSignal.timeout(REQUEST_TIMEOUT) })
-  if (!response.ok) throw new Error(`Upstream returned ${response.status}`)
+  if (response.status === 401) throw new Error('GitHub rejected the configured API authentication')
+  if (response.status === 403 && response.headers.get('x-ratelimit-remaining') === '0') {
+    const resetAt = response.headers.get('x-ratelimit-reset')
+    throw new Error(`GitHub API rate limit exceeded${resetAt ? `; reset at ${new Date(Number(resetAt) * 1000).toISOString()}` : ''}`)
+  }
+  if (response.status === 403 || response.status === 429) throw new Error(`Upstream rate limited or denied the request (HTTP ${response.status})`)
+  if (!response.ok) throw new Error(`Upstream returned HTTP ${response.status}`)
   return response.json() as Promise<T>
 }
 
@@ -70,32 +78,9 @@ function failure<T>(error: unknown): ProviderResult<T> {
 
 type GhRepo = { name: string; description: string | null; language: string | null; stargazers_count: number; forks_count: number; html_url: string; updated_at: string; fork: boolean }
 
-function normalizeGitHubActivity(payload: unknown): GitHubData['activity'] {
-  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return null
-  const contributions = (payload as { contributions?: unknown }).contributions
-  if (!Array.isArray(contributions) || contributions.length < 350 || contributions.length > 370) return null
-  const activity: Array<{ date: string; count: number }> = []
-  const seen = new Set<string>()
-  for (const entry of contributions) {
-    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return null
-    const day = entry as { date?: unknown; count?: unknown; level?: unknown }
-    if (typeof day.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(day.date) || new Date(`${day.date}T00:00:00Z`).toISOString().slice(0, 10) !== day.date) return null
-    if (!Number.isSafeInteger(day.count) || (day.count as number) < 0 || !Number.isInteger(day.level) || (day.level as number) < 0 || (day.level as number) > 4 || seen.has(day.date)) return null
-    seen.add(day.date)
-    activity.push({ date: day.date, count: day.count as number })
-  }
-  activity.sort((a, b) => a.date.localeCompare(b.date))
-  for (let index = 1; index < activity.length; index++) {
-    const previous = new Date(`${activity[index - 1].date}T00:00:00Z`)
-    previous.setUTCDate(previous.getUTCDate() + 1)
-    if (previous.toISOString().slice(0, 10) !== activity[index].date) return null
-  }
-  return activity
-}
-
 export async function getGitHub(): Promise<ProviderResult<GitHubData>> {
   try {
-    return result(await cached(`github:${profileConfig.githubUsername}`, async () => {
+    const data = await cached(`github:${profileConfig.githubUsername}`, async () => {
       const headers: Record<string, string> = { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' }
       if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`
       const base = `https://api.github.com/users/${encodeURIComponent(profileConfig.githubUsername)}`
@@ -111,18 +96,21 @@ export async function getGitHub(): Promise<ProviderResult<GitHubData>> {
           return all.filter((repo) => !repo.fork).sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at))
         })(),
         fetchJson<unknown>(`${base}/events/public?per_page=30`, headers).then(parseGitHubEvents).catch(() => []),
-        fetchJson<unknown>(`https://github-contributions-api.jogruber.de/v4/${encodeURIComponent(profileConfig.githubUsername)}?y=last`).then(normalizeGitHubActivity).catch(() => null),
+        fetchGitHubContributions(profileConfig.githubUsername).then((activity) => ({ activity, error: undefined as string | undefined })).catch((error: unknown) => ({ activity: null, error: error instanceof Error ? error.message : 'GitHub contributions request failed' })),
       ])
+      const { activity: activityData, error: activityError } = activity
       const languageCounts = new Map<string, number>()
       for (const repo of repositories) if (repo.language) languageCounts.set(repo.language, (languageCounts.get(repo.language) ?? 0) + 1)
       return {
         profile: { username: user.login, name: user.name, avatarUrl: user.avatar_url, bio: user.bio, url: user.html_url, publicRepos: user.public_repos, followers: user.followers },
         repositories: repositories.map((repo) => ({ name: repo.name, description: repo.description, language: repo.language, stars: repo.stargazers_count, forks: repo.forks_count, url: repo.html_url, updatedAt: repo.updated_at })),
         languages: [...languageCounts].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count),
-        activity,
+        activity: activityData,
+        activityError,
         recentActivity: events.filter((event) => event.created_at).slice(0, 8).map((event) => ({ type: event.type, repo: event.repo.name, createdAt: event.created_at!, url: `https://github.com/${event.repo.name}` })),
       }
-    }))
+    }, (value) => value.activity === null ? 60_000 : CACHE_TTL)
+    return result(data)
   } catch (error) { return failure(error) }
 }
 

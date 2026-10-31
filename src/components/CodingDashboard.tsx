@@ -90,7 +90,7 @@ export function CodingDashboard() {
               <StatCard label="Followers" value={github?.profile.followers ?? null} href={profileLinks.github} loading={loading} unavailable={providerError('github')} />
             </div>
             {github && <div className="flex items-center gap-3 border-t border-[var(--border-color)] pt-4 text-xs text-gray-400"><img src={github.profile.avatarUrl} alt="GitHub avatar" className="h-9 w-9 rounded-full"/><span className="line-clamp-2">{github.profile.bio || 'Public profile connected'}</span></div>}
-            {providerError('github') && !loading && <EmptyMessage unavailable provider="GitHub" />}
+            {providerError('github') && !loading && <EmptyMessage unavailable provider="GitHub" message={stats?.github.message} />}
           </section>
 
           <section aria-labelledby="codeforces-heading" className={`${panelStyle} space-y-5`}>
@@ -101,7 +101,7 @@ export function CodingDashboard() {
               <StatCard label="Problems solved" value={codeforces?.solved ?? null} href={profileLinks.codeforces} loading={loading} unavailable={providerError('codeforces')} />
               <StatCard label="Contests" value={codeforces?.contests ?? null} href={profileLinks.codeforces} loading={loading} unavailable={providerError('codeforces')} />
             </div>
-            {providerError('codeforces') && !loading && <EmptyMessage unavailable provider="Codeforces" />}
+            {providerError('codeforces') && !loading && <EmptyMessage unavailable provider="Codeforces" message={stats?.codeforces.message} />}
           </section>
 
           <section aria-labelledby="leetcode-heading" className={`${panelStyle} space-y-5`}>
@@ -110,11 +110,10 @@ export function CodingDashboard() {
             {stats?.leetcode.status === 'not_configured' && <div role="status" className="rounded-xl border border-[var(--border-color)] p-3 text-xs text-gray-400">Set LEETCODE_USERNAME to enable statistics.</div>}
             {stats?.leetcode.status === 'cached' && <p role="status" className="text-xs text-amber-200/80">Saved data · Updated {new Date(stats.leetcode.lastUpdated).toLocaleString()}</p>}
             {leetcodeConfigured && <div className="grid grid-cols-2 gap-3">
-              <StatCard label="Solved" value={leetCodeMetric(stats?.leetcode, 'totalSolved')} href={profileLinks.leetcode} loading={loading} unavailable={!leetcode} />
+              <StatCard label="Solved" value={leetCodeMetric(stats?.leetcode, 'totalSolved')} sublabel={leetcodeRating(stats?.leetcode) === null ? undefined : `Contest rating ${leetcodeRating(stats?.leetcode)}`} href={profileLinks.leetcode} loading={loading} unavailable={!leetcode} />
               <StatCard label="Easy" value={leetCodeMetric(stats?.leetcode, 'easy')} href={profileLinks.leetcode} loading={loading} unavailable={!leetcode} />
               <StatCard label="Medium" value={leetCodeMetric(stats?.leetcode, 'medium')} href={profileLinks.leetcode} loading={loading} unavailable={!leetcode} />
               <StatCard label="Hard" value={leetCodeMetric(stats?.leetcode, 'hard')} href={profileLinks.leetcode} loading={loading} unavailable={!leetcode} />
-              <StatCard label="Contest rating" value={leetcodeRating(stats?.leetcode)} href={profileLinks.leetcode} loading={loading} unavailable={!leetcode || leetcode?.contestRating === null} />
             </div>}
           </section>
         </div>
@@ -130,7 +129,7 @@ export function CodingDashboard() {
             <section className={panelStyle}><h3 className="mb-4 flex items-center gap-2 text-sm font-medium text-gray-200"><PlatformIcon platform="leetcode" size={17} />LeetCode by difficulty</h3><BarList values={leetcode ? [{ name: 'Easy', count: leetcode.easy }, { name: 'Medium', count: leetcode.medium }, { name: 'Hard', count: leetcode.hard }] : []} loading={loading} unavailable={!leetcode} /></section>
           </div>
           <div className="grid gap-4 lg:grid-cols-3">
-            <ActivityHeatmap title="GitHub contributions" platform="github" activity={github?.activity ?? []} unit="contributions" coverageStart={github?.activity?.[0]?.date} coverageEnd={github?.activity?.at(-1)?.date} loading={loading} unavailable={!github?.activity} />
+            <ActivityHeatmap title="GitHub contributions" platform="github" activity={github?.activity ?? []} unit="contributions" coverageStart={github?.activity?.[0]?.date} coverageEnd={github?.activity?.at(-1)?.date} loading={loading} unavailable={!github?.activity} errorMessage={github?.activityError} />
             <ActivityHeatmap title="Codeforces activity" platform="codeforces" activity={codeforces?.activity ?? []} unit="submissions" loading={loading} unavailable={providerError('codeforces')} />
             {stats?.leetcode.status !== 'not_configured' && <ActivityHeatmap title="LeetCode activity" platform="leetcode" activity={leetcode?.activity ?? []} unit="submissions" loading={loading} unavailable={!leetcode} />}
           </div>
@@ -152,11 +151,11 @@ function PlatformHeading({ id, name, subtitle, href }: { id: string; name: strin
   return <header className="flex flex-wrap items-baseline justify-between gap-2"><div><h3 id={id} className="flex items-center gap-2 text-xl font-semibold tracking-tight text-white"><PlatformIcon platform={platform} size={20} />{name}</h3><p className="mt-1 text-xs text-gray-500">{subtitle}</p></div><a href={href} target="_blank" rel="noreferrer" aria-label={`Open ${name} profile`} className="text-gray-500 hover:text-cyan-300"><PlatformIcon platform={platform} size={18} /></a></header>
 }
 
-function EmptyMessage({ unavailable, provider }: { unavailable: boolean; provider: string }) {
-  return <p className="text-xs text-gray-500">{unavailable ? `${provider} data is unavailable right now.` : 'No public items found.'}</p>
+function EmptyMessage({ unavailable, provider, message }: { unavailable: boolean; provider: string; message?: string }) {
+  return <p role={unavailable ? 'status' : undefined} className="text-xs text-gray-500">{unavailable ? message || `${provider} data is unavailable right now.` : 'No public items found.'}</p>
 }
 
-function ActivityHeatmap({ title, platform, activity, unit, coverageStart, coverageEnd, loading, unavailable }: { title: string; platform: Platform; activity: Array<{ date: string; count: number }>; unit: 'contributions' | 'submissions'; coverageStart?: string; coverageEnd?: string; loading: boolean; unavailable: boolean }) {
+function ActivityHeatmap({ title, platform, activity, unit, coverageStart, coverageEnd, loading, unavailable, errorMessage }: { title: string; platform: Platform; activity: Array<{ date: string; count: number }>; unit: 'contributions' | 'submissions'; coverageStart?: string; coverageEnd?: string; loading: boolean; unavailable: boolean; errorMessage?: string }) {
   const scrollRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const container = scrollRef.current
@@ -164,8 +163,8 @@ function ActivityHeatmap({ title, platform, activity, unit, coverageStart, cover
   }, [activity, loading, unavailable])
   const today = new Date()
   today.setUTCHours(0, 0, 0, 0)
-  const firstDay = new Date(today)
-  firstDay.setUTCDate(firstDay.getUTCDate() - 363)
+  const firstDay = coverageStart ? new Date(`${coverageStart}T00:00:00Z`) : new Date(today)
+  if (!coverageStart) firstDay.setUTCDate(firstDay.getUTCDate() - 363)
   firstDay.setUTCDate(firstDay.getUTCDate() - firstDay.getUTCDay())
   const activityByDate = new Map(activity.map((item) => [item.date, item.count]))
   const days = Array.from({ length: 53 * 7 }, (_, index) => {
@@ -186,7 +185,7 @@ function ActivityHeatmap({ title, platform, activity, unit, coverageStart, cover
   const heatmapHeight = monthHeight + 7 * cellSize + 6 * cellGap
   return <section className={`${panelStyle} activity-heatmap-card`}>
     <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2"><h3 className="flex items-center gap-2 text-sm font-medium text-gray-200"><PlatformIcon platform={platform} size={17} />{title}</h3><p className="text-[11px] text-gray-500">Last year</p></div>
-    {loading ? <div className="h-28 animate-pulse rounded bg-gray-800/70" aria-label="Loading activity" /> : unavailable ? <p className="text-xs text-gray-500">Activity data unavailable.</p> : <>
+    {loading ? <div className="h-28 animate-pulse rounded bg-gray-800/70" aria-label="Loading activity" /> : unavailable ? <p role="status" className="text-xs text-gray-500">{errorMessage || 'Activity data unavailable.'}</p> : <>
       <div ref={scrollRef} className="w-full overflow-x-auto pb-1">
       <svg viewBox={`0 0 ${heatmapWidth} ${heatmapHeight}`} role="img" aria-label={`${title}, last year`} className="block h-auto w-full min-w-[540px]" preserveAspectRatio="xMinYMin meet">
         {weeks.map((week, column) => {
